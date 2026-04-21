@@ -1,4 +1,4 @@
-package com.elza.pulse.ui.screens
+package com.elza.pulse.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
