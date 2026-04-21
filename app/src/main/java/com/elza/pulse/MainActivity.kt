@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,10 +35,22 @@ fun PulseApp() {
         startDestination = Route.Home.route
     ) {
         composable(Route.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
         composable(Route.Search.route) {
-            SearchScreen()
+            SearchScreen(navController)
+        }
+        composable(Route.SearchResult.route) { backStackEntry ->
+            val query = backStackEntry.arguments?.getString("query") ?: ""
+            Text("Search Results for: $query")
+        }
+        composable(Route.Album.route) { backStackEntry ->
+            val browseId = backStackEntry.arguments?.getString("browseId") ?: ""
+            Text("Album: $browseId")
+        }
+        composable(Route.Artist.route) { backStackEntry ->
+            val browseId = backStackEntry.arguments?.getString("browseId") ?: ""
+            Text("Artist: $browseId")
         }
     }
 }

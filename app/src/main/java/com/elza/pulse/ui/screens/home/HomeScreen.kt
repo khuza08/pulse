@@ -1,6 +1,7 @@
 package com.elza.pulse.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,10 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elza.pulse.ui.components.SearchBar
+import androidx.navigation.NavController
+import com.elza.pulse.ui.screens.Route
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     
     Box(modifier = Modifier.fillMaxSize()) {
@@ -97,7 +100,10 @@ fun HomeScreen() {
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
-                onSearch = { /* Handle search */ }
+                onSearch = { /* Handle search */ },
+                modifier = Modifier.padding(horizontal = 16.dp).clickable {
+                    navController.navigate(Route.Search.route)
+                }
             )
         }
     }
