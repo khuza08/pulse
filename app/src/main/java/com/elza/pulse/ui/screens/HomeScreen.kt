@@ -25,68 +25,80 @@ import com.elza.pulse.ui.components.SearchBar
 fun HomeScreen() {
     var searchQuery by remember { mutableStateOf("") }
     
-    Scaffold(
-        topBar = {
-            Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                Column(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.background)
+                        .statusBarsPadding()
+                ) {
+                    Text(
+                        text = "Listen Now",
+                        style = MaterialTheme.typography.displayLarge,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .statusBarsPadding()
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(bottom = 100.dp) // Leave space for the floating bar
             ) {
-                Text(
-                    text = "Listen Now",
-                    style = MaterialTheme.typography.displayLarge,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearch = { /* Handle search */ }
-                )
+                // Quick Picks Section
+                item {
+                    SectionHeader(title = "Quick Picks")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(mockSongs) { song ->
+                            QuickPickItem(song)
+                        }
+                    }
+                }
+
+                // Trending Section
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader(title = "Trending Now")
+                }
+                
+                items(mockSongs.takeLast(4)) { song ->
+                    TrendingItem(song)
+                }
+
+                // Artists Section
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader(title = "Featured Artists")
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(mockArtists) { artist ->
+                            ArtistItem(artist)
+                        }
+                    }
+                }
             }
         }
-    ) { innerPadding ->
-        LazyColumn(
+
+        // Floating Search Bar
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 100.dp) // Space for player
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .imePadding()
+                .padding(bottom = 16.dp)
         ) {
-            // Quick Picks Section
-            item {
-                SectionHeader(title = "Quick Picks")
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(mockSongs) { song ->
-                        QuickPickItem(song)
-                    }
-                }
-            }
-
-            // Trending Section
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                SectionHeader(title = "Trending Now")
-            }
-            
-            items(mockSongs.takeLast(4)) { song ->
-                TrendingItem(song)
-            }
-
-            // Artists Section
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                SectionHeader(title = "Featured Artists")
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(mockArtists) { artist ->
-                        ArtistItem(artist)
-                    }
-                }
-            }
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                onSearch = { /* Handle search */ }
+            )
         }
     }
 }
