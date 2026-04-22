@@ -108,7 +108,7 @@ object InnertubeMapper {
             return null
         }
         
-        val thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
+        val thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.url
 
         return SongItem(
             id = videoId,
