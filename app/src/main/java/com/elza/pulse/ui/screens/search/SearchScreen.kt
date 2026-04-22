@@ -50,8 +50,11 @@ fun SearchScreen(navController: NavController) {
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     onSearch = { 
+                        println("SearchScreen: onSearch triggered with query: '$it'")
                         if (it.isNotEmpty()) {
-                            navController.navigate(Route.SearchResult.createRoute(it))
+                            val route = Route.SearchResult.createRoute(it)
+                            println("SearchScreen: Navigating to $route")
+                            navController.navigate(route)
                         }
                     },
                     modifier = Modifier.fillMaxWidth()

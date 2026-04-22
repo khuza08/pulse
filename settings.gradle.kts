@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "pulse"
 include(":app")
+include(":innertube")

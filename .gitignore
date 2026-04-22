@@ -8,3 +8,24 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android Studio
+*.jks
+*.keystore
+*.apk
+*.aar
+
+# Build outputs
+**/build/
+**/bin/
+
+# Gradle
+.gradle/
+build/
+
+# Kotlin
+.kotlin/
+
+# OS specific
+.DS_Store
+Thumbs.db

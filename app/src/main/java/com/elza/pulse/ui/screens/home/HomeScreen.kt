@@ -100,7 +100,12 @@ fun HomeScreen(navController: NavController) {
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
-                onSearch = { /* Handle search */ },
+                onSearch = { 
+                    println("HomeScreen: onSearch triggered with query: '$it'")
+                    if (it.isNotEmpty()) {
+                        navController.navigate(Route.SearchResult.createRoute(it))
+                    }
+                },
                 modifier = Modifier.padding(horizontal = 16.dp).clickable {
                     navController.navigate(Route.Search.route)
                 }

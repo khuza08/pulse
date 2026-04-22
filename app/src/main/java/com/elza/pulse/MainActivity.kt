@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.elza.pulse.ui.screens.Route
 import com.elza.pulse.ui.screens.home.HomeScreen
 import com.elza.pulse.ui.screens.search.SearchScreen
+import com.elza.pulse.ui.screens.searchresult.SearchResultScreen
 import com.elza.pulse.ui.theme.PulseTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,7 +43,7 @@ fun PulseApp() {
         }
         composable(Route.SearchResult.route) { backStackEntry ->
             val query = backStackEntry.arguments?.getString("query") ?: ""
-            Text("Search Results for: $query")
+            SearchResultScreen(navController, query)
         }
         composable(Route.Album.route) { backStackEntry ->
             val browseId = backStackEntry.arguments?.getString("browseId") ?: ""
