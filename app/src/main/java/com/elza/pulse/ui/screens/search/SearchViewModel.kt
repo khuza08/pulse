@@ -2,9 +2,10 @@ package com.elza.pulse.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elza.pulse.innertube.Innertube
-import com.elza.pulse.innertube.InnertubeMapper
-import com.elza.pulse.innertube.models.SongItem
+import com.elza.pulse.providers.innertube.Innertube
+import com.elza.pulse.providers.innertube.models.bodies.SearchBody
+import com.elza.pulse.providers.innertube.requests.searchPage
+import com.elza.pulse.providers.innertube.utils.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,7 @@ import android.util.Log
 sealed class SearchState {
     object Idle : SearchState()
     object Loading : SearchState()
-    data class Success(val items: List<SongItem>) : SearchState()
+    data class Success(val items: List<Innertube.SongItem>) : SearchState()
     data class Error(val message: String) : SearchState()
 }
 
@@ -23,23 +24,21 @@ class SearchViewModel : ViewModel() {
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
 
     fun search(query: String) {
-        println("SearchViewModel: Searching for '$query'")
-        if (query.isBlank()) {
-            println("SearchViewModel: Query is blank, ignoring")
-            return
-        }
+        if (query.isBlank()) return
         
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
-            try {
-                println("SearchViewModel: Calling Innertube.search('$query')")
-                val response = Innertube.search(query)
-                val items = InnertubeMapper.fromSearchResponse(response)
-                println("SearchViewModel: Search success: ${items.size} items found")
+            Innertube.searchPage(
+                body = SearchBody(
+                    query = query,
+                    params = Innertube.SearchFilter.Song.value
+                ),
+                fromMusicShelfRendererContent = Innertube.SongItem::from
+            )?.onSuccess { itemsPage ->
+                val items = itemsPage?.items ?: emptyList()
                 _searchState.value = SearchState.Success(items)
-            } catch (e: Exception) {
-                println("SearchViewModel: Search error: ${e.message}")
-                e.printStackTrace()
+            }?.onFailure { e ->
+                Log.e("SearchViewModel", "Search error", e)
                 _searchState.value = SearchState.Error(e.message ?: "Unknown error")
             }
         }

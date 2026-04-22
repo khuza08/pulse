@@ -21,22 +21,23 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.elza.pulse.ui.screens.search.SearchState
 import com.elza.pulse.ui.screens.search.SearchViewModel
-import com.elza.pulse.innertube.models.SongItem
+import com.elza.pulse.providers.innertube.Innertube
+import com.elza.pulse.ui.screens.player.PlayerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchResultScreen(
     navController: NavController,
     query: String,
-    viewModel: SearchViewModel = viewModel()
+    viewModel: SearchViewModel = viewModel(),
+    playerViewModel: PlayerViewModel = viewModel()
 ) {
-    println("SearchResultScreen: Composing for query: '$query'")
     LaunchedEffect(query) {
-        println("SearchResultScreen: LaunchedEffect triggered for query: '$query'")
         viewModel.search(query)
     }
 
     val state by viewModel.searchState.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -49,10 +50,7 @@ fun SearchResultScreen(
                             contentDescription = "Back"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -70,7 +68,11 @@ fun SearchResultScreen(
                         items(currentState.items) { item ->
                             SearchResultItem(
                                 item = item,
-                                onClick = { /* Navigate to player */ }
+                                onClick = {
+                                    playerViewModel.initController(context)
+                                    playerViewModel.loadSong(item)
+                                    // Navigate if needed, or just play in background/miniplayer
+                                }
                             )
                         }
                     }
@@ -89,7 +91,7 @@ fun SearchResultScreen(
 }
 
 @Composable
-fun SearchResultItem(item: SongItem, onClick: () -> Unit) {
+fun SearchResultItem(item: Innertube.SongItem, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,7 +100,7 @@ fun SearchResultItem(item: SongItem, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = item.thumbnail,
+            model = item.thumbnail?.url, // Assuming thumbnail has url or thumbnails
             contentDescription = null,
             modifier = Modifier
                 .size(56.dp)
@@ -111,12 +113,12 @@ fun SearchResultItem(item: SongItem, onClick: () -> Unit) {
         
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = item.title,
+                text = item.info?.name ?: "Unknown",
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1
             )
             Text(
-                text = item.artist,
+                text = item.authors?.joinToString { it.name ?: "" } ?: "Unknown",
                 style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.tertiary),
                 maxLines = 1
             )
