@@ -61,7 +61,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.Pulse.NoActionBar"
+            android:theme="@style/Theme.Pulse.Starting"
+
             android:windowSoftInputMode="adjustResize"
             android:supportsPictureInPicture="true"
             android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode">

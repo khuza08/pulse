@@ -6,7 +6,7 @@
         <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowMinWidthMajor">100%</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@color/ic_launcher_background</item>
+        <item name="android:windowBackground">#000000</item>
         <item name="android:enforceNavigationBarContrast" tools:ignore="NewApi">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -15,5 +15,11 @@
     <style name="Theme.Pulse.NoActionBar" parent="Theme.Pulse">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Pulse.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Pulse.NoActionBar</item>
     </style>
 </resources>

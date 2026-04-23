@@ -136,7 +136,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import java.io.File
+
 
 private const val TAG = "MainActivity"
 private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -174,7 +176,9 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

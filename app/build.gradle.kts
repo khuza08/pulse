@@ -190,6 +190,8 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.activity)
+    implementation(libs.splashscreen)
+
     implementation(libs.compose.foundation)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)
