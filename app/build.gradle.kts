@@ -1,52 +1,177 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.chaquo)
 }
 
 android {
-    namespace = "com.elza.pulse"
-    compileSdk = 35
+    val appId = "com.elza.pulse"
+
+    namespace = appId
+    compileSdk = 36
+
+    val abis = listOf("arm64-v8a")
+    val cmakeVersion = "4.1.2"
+    ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        applicationId = "com.elza.pulse"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = appId
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = 24
+        targetSdk = 36
+
+        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 20
+        versionName = project.version.toString()
+
+        multiDexEnabled = true
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            //noinspection ChromeOsAbiSupport
+            abiFilters += abis
+        }
+
+        @Suppress("UnstableApiUsage")
+        externalNativeBuild {
+            cmake {
+                arguments += listOf("-DANDROID_STL=c++_static")
+            }
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            isUniversalApk = false
+        }
+    }
+
+    signingConfigs {
+        create("ci") {
+            storeFile = System.getenv("ANDROID_NIGHTLY_KEYSTORE")?.let { file(it) }
+            storePassword = System.getenv("ANDROID_NIGHTLY_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("ANDROID_NIGHTLY_KEYSTORE_ALIAS")
+            keyPassword = System.getenv("ANDROID_NIGHTLY_KEYSTORE_PASSWORD")
         }
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["appName"] = "Pulse"
+        }
+
         release {
-            isMinifyEnabled = false
+            versionNameSuffix = "-RELEASE"
+            isMinifyEnabled = true
+            isShrinkResources = true
+            manifestPlaceholders["appName"] = "Pulse"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+
+        create("nightly") {
+            initWith(getByName("release"))
+            matchingFallbacks += "release"
+
+            applicationIdSuffix = ".nightly"
+            versionNameSuffix = "-NIGHTLY"
+            manifestPlaceholders["appName"] = "Pulse Nightly"
+            signingConfig = signingConfigs.findByName("ci")
+        }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
+
     buildFeatures {
-        compose = true
+        buildConfig = true
+        resValues = true
+    }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    packaging {
+        resources.excludes.add("META-INF/**/*")
+        jniLibs.useLegacyPackaging = true
+    }
+
+    androidResources {
+        @Suppress("UnstableApiUsage")
+        generateLocaleConfig = true
+    }
+
+    externalNativeBuild {
+        cmake {
+            version = cmakeVersion
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
+    }
+}
+
+afterEvaluate {
+    val jniLibs = file("${layout.projectDirectory}/src/main/jniLibs").also { it.mkdirs() }
+    android.buildTypes.forEach { type ->
+        val typeCapitalized = type.name.let {
+            it.first().uppercase() + it.substring(1)
+        }
+
+        tasks.named("assemble${typeCapitalized}").configure {
+            doFirst {
+                val cxxDir =
+                    file("${layout.buildDirectory.get()}/intermediates/cxx/${if (typeCapitalized == "Debug") "Debug" else "RelWithDebInfo"}")
+
+                cxxDir.walkTopDown().forEach cxx@{ f ->
+                    if (f.name != "qjs") return@cxx
+
+                    f.copyTo(
+                        target = jniLibs
+                            .resolve(f.parentFile.name)
+                            .also { it.mkdirs() }
+                            .resolve("libqjs.so"), // disguise because fuck you
+                        overwrite = true
+                    )
+                }
+            }
+        }
+    }
+}
+
+kotlin {
+    // jvmToolchain(libs.versions.jvm.get().toInt())
+
+    compilerOptions {
+        languageVersion.set(KotlinVersion.KOTLIN_2_5)
+
+        freeCompilerArgs.addAll(
+            "-Xcontext-parameters",
+            "-Xconsistent-data-class-copy-visibility"
+        )
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+composeCompiler {
+    if (project.findProperty("enableComposeCompilerReports") == "true") {
+        val dest = layout.buildDirectory.dir("compose_metrics")
+        metricsDestination = dest
+        reportsDestination = dest
     }
 }
 
 chaquopy {
     defaultConfig {
-        version = "3.10" // Using a stable version for python on device
-        buildPython("/home/huza/.pyenv/shims/python") // Point to the pyenv Python 3.10
+        version = "3.14"
         pip {
-            install("yt-dlp>=2025.01.26")
+            install("yt-dlp>=2026.03.17")
             install("yt-dlp-ejs")
             install("pip")
         }
@@ -54,28 +179,63 @@ chaquopy {
 }
 
 dependencies {
-    implementation(project(":providers:innertube"))
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.coil.compose)
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.session)
-    implementation(libs.media3.ui)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    coreLibraryDesugaring(libs.desugaring)
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(projects.compose.persist)
+    implementation(projects.compose.preferences)
+    implementation(projects.compose.routing)
+    implementation(projects.compose.reordering)
+
+    implementation(fileTree(projectDir.resolve("vendor")))
+
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.activity)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.util)
+    implementation(libs.compose.shimmer)
+    implementation(libs.compose.lottie)
+    implementation(libs.compose.material3)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.ktor)
+
+    implementation(libs.palette)
+    implementation(libs.monet)
+    runtimeOnly(projects.core.materialCompat)
+
+    implementation(libs.exoplayer)
+    implementation(libs.exoplayer.workmanager)
+    implementation(libs.media3.session)
+    implementation(libs.media)
+
+    implementation(libs.workmanager)
+    implementation(libs.workmanager.ktx)
+
+    implementation(libs.credentials)
+    implementation(libs.credentials.play)
+
+    implementation(libs.kotlin.coroutines)
+    implementation(libs.kotlin.immutable)
+    implementation(libs.kotlin.datetime)
+
+    implementation(libs.room)
+    ksp(libs.room.compiler)
+
+    implementation(libs.log4j)
+    implementation(libs.slf4j)
+    implementation(libs.logback)
+
+    implementation(projects.providers.github)
+    implementation(projects.providers.innertube)
+    implementation(projects.providers.kugou)
+    implementation(projects.providers.lrclib)
+    implementation(projects.providers.piped)
+    implementation(projects.providers.sponsorblock)
+    implementation(projects.providers.translate)
+    implementation(projects.core.data)
+    implementation(projects.core.ui)
+
+    detektPlugins(libs.detekt.compose)
+    detektPlugins(libs.detekt.formatting)
 }

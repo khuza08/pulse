@@ -1,0 +1,3 @@
+* Fixed notification actions
+* Fixed stability
+* Implemented yt-dlp's n-sig solver support

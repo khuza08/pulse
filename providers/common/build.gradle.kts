@@ -1,14 +1,19 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.android.lint)
 }
 
 dependencies {
     implementation(libs.kotlin.coroutines)
-    implementation(libs.kotlinx.datetime)
+    api(libs.kotlin.datetime)
+
     implementation(libs.ktor.http)
-    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.serialization.json)
+
+    detektPlugins(libs.detekt.compose)
+    detektPlugins(libs.detekt.formatting)
 }
 
 kotlin {
-    jvmToolchain(17)
+    // jvmToolchain(libs.versions.jvm.get().toInt())
 }

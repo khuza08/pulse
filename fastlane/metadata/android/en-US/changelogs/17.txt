@@ -1,0 +1,2 @@
+* Added yt-dlp integration
+* Fixed playback
