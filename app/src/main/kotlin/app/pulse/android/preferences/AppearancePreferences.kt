@@ -10,13 +10,8 @@ import app.pulse.core.ui.Darkness
 import app.pulse.core.ui.ThumbnailRoundness
 
 object AppearancePreferences : GlobalPreferencesHolder() {
-    var colorSource by enum(
-        when (OldPreferences.oldColorPaletteName) {
-            ColorPaletteName.Default, ColorPaletteName.PureBlack -> ColorSource.Default
-            ColorPaletteName.Dynamic, ColorPaletteName.AMOLED -> ColorSource.Dynamic
-            ColorPaletteName.MaterialYou -> ColorSource.MaterialYou
-        }
-    )
+    var colorSource by enum(ColorSource.MaterialYou)
+
     var colorMode by enum(
         when (OldPreferences.oldColorPaletteMode) {
             ColorPaletteMode.Light -> ColorMode.Light

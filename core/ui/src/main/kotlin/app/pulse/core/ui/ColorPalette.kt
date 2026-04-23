@@ -33,30 +33,31 @@ data class ColorPalette(
     val isDark: Boolean
 ) : Parcelable
 
-private val defaultAccentColor = Color(0xff3e44ce).hsl
+private val defaultAccentColor = Color(0xffffffff).hsl
+
 
 val defaultLightPalette = ColorPalette(
-    background0 = Color(0xfffdfdfe),
-    background1 = Color(0xfff8f8fc),
-    background2 = Color(0xffeaeaf5),
-    text = Color(0xff212121),
-    textSecondary = Color(0xff656566),
-    textDisabled = Color(0xff9d9d9d),
-    accent = defaultAccentColor.color,
+    background0 = Color(0xffffffff),
+    background1 = Color(0xfff5f5f5),
+    background2 = Color(0xffe0e0e0),
+    text = Color(0xff000000),
+    textSecondary = Color(0xff616161),
+    textDisabled = Color(0xffbdbdbd),
+    accent = Color(0xff000000),
     onAccent = Color.White,
     isDefault = true,
     isDark = false
 )
 
 val defaultDarkPalette = ColorPalette(
-    background0 = Color(0xff16171d),
-    background1 = Color(0xff1f2029),
-    background2 = Color(0xff2b2d3b),
-    text = Color(0xffe1e1e2),
-    textSecondary = Color(0xffa3a4a6),
-    textDisabled = Color(0xff6f6f73),
-    accent = defaultAccentColor.color,
-    onAccent = Color.White,
+    background0 = Color(0xff000000),
+    background1 = Color(0xff121212),
+    background2 = Color(0xff1e1e1e),
+    text = Color(0xffffffff),
+    textSecondary = Color(0xffbdbdbd),
+    textDisabled = Color(0xff757575),
+    accent = Color(0xffffffff),
+    onAccent = Color.Black,
     isDefault = true,
     isDark = true
 )
