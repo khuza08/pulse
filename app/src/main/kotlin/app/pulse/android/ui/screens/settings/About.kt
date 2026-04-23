@@ -60,7 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val VERSION_NAME = BuildConfig.VERSION_NAME.substringBeforeLast("-")
-private const val REPO_OWNER = "25huizengek1"
+private const val REPO_OWNER = "khuza08"
 private const val REPO_NAME = "Pulse"
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
