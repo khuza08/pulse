@@ -81,6 +81,8 @@ import app.pulse.android.ui.modifiers.onSwipe
 import app.pulse.android.ui.modifiers.pinchToToggle
 import app.pulse.android.utils.DisposableListener
 import app.pulse.android.utils.Pip
+import app.pulse.android.utils.asMediaItem
+import app.pulse.android.utils.forcePlay
 import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.positionAndDurationState
@@ -132,7 +134,19 @@ fun Player(
     }
     var shouldBePlaying by remember(binder) { mutableStateOf(binder?.player?.shouldBePlaying == true) }
 
-    var likedAt by remember(mediaItem) {
+    var historyMediaItem by remember { mutableStateOf<MediaItem?>(null) }
+    LaunchedEffect(binder, mediaItem) {
+        if (mediaItem == null) {
+            Database.history(1).collect { songs ->
+                historyMediaItem = songs.firstOrNull()?.asMediaItem
+            }
+        } else {
+            historyMediaItem = null
+        }
+    }
+
+    var likedAt by remember(mediaItem, historyMediaItem) {
+        val activeMediaItem = mediaItem ?: historyMediaItem
         mutableStateOf(
             value = null,
             policy = object : SnapshotMutationPolicy<Long?> {
@@ -148,10 +162,11 @@ fun Player(
         )
     }
 
-    LaunchedEffect(mediaItem) {
-        mediaItem?.mediaId?.let { mediaId ->
+    LaunchedEffect(mediaItem, historyMediaItem) {
+        val activeMediaId = mediaItem?.mediaId ?: historyMediaItem?.mediaId
+        if (activeMediaId != null) {
             Database
-                .likedAt(mediaId)
+                .likedAt(activeMediaId)
                 .distinctUntilChanged()
                 .collect { likedAt = it }
         }
@@ -174,7 +189,8 @@ fun Player(
     }
 
     val (position, duration) = binder?.player.positionAndDurationState()
-    val metadata = remember(mediaItem) { mediaItem?.mediaMetadata }
+    val activeMediaItem = mediaItem ?: historyMediaItem
+    val metadata = remember(activeMediaItem) { activeMediaItem?.mediaMetadata }
     val extras = remember(metadata) { metadata?.extras?.songBundle }
 
     val horizontalBottomPaddingValues = windowInsets
@@ -183,12 +199,14 @@ fun Player(
 
     OnGlobalRoute { if (layoutState.expanded) layoutState.collapseSoft() }
 
-    if (mediaItem != null) BottomSheet(
+    BottomSheet(
         state = layoutState,
         modifier = modifier.fillMaxSize(),
         onDismiss = {
-            binder?.let { onDismiss(it) }
-            layoutState.dismissSoft()
+            if (mediaItem != null) {
+                binder?.let { onDismiss(it) }
+            }
+            layoutState.collapseSoft()
         },
         backHandlerEnabled = !menuState.isDisplayed,
         collapsedContent = { innerModifier ->
@@ -196,16 +214,6 @@ fun Player(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier
-                    .let { modifier ->
-                        if (horizontalSwipeToClose) modifier.onSwipe(
-                            animateOffset = true,
-                            onSwipeOut = { animationJob ->
-                                binder?.let { onDismiss(it) }
-                                animationJob.join()
-                                layoutState.dismissSoft()
-                            }
-                        ) else modifier
-                    }
                     .fillMaxSize()
                     .clip(shape)
                     .background(colorPalette.background1)
@@ -248,13 +256,14 @@ fun Player(
                         .weight(1f)
                 ) {
                     AnimatedContent(
-                        targetState = metadata?.title?.toString().orEmpty(),
+                        targetState = metadata?.title?.toString() ?: stringResource(R.string.about),
                         label = "",
                         transitionSpec = { fadeIn() togetherWith fadeOut() }
                     ) { text ->
                         BasicText(
-                            text = text,
+                            text = if (metadata == null) stringResource(R.string.no_music_played) else text,
                             style = typography.xs.semiBold,
+
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -311,10 +320,16 @@ fun Player(
                         modifier = Modifier
                             .clickable(
                                 onClick = {
-                                    if (shouldBePlaying) binder?.player?.pause()
-                                    else {
-                                        if (binder?.player?.playbackState == Player.STATE_IDLE) binder.player.prepare()
-                                        binder?.player?.play()
+                                    if (mediaItem == null && historyMediaItem != null) {
+                                        binder?.player?.forcePlay(historyMediaItem!!)
+                                    } else {
+                                        if (shouldBePlaying) binder?.player?.pause()
+                                        else {
+                                            if (binder?.player?.playbackState == Player.STATE_IDLE) {
+                                                binder.player.prepare()
+                                            }
+                                            binder?.player?.play()
+                                        }
                                     }
                                 },
                                 indication = ripple(bounded = false),
@@ -408,7 +423,7 @@ fun Player(
 
         val controlsContent: @Composable (modifier: Modifier) -> Unit = { innerModifier ->
             Controls(
-                media = mediaItem?.toUiMedia(duration),
+                media = activeMediaItem?.toUiMedia(duration),
                 binder = binder,
                 likedAt = likedAt,
                 setLikedAt = { likedAt = it },

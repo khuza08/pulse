@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModel
@@ -71,6 +72,7 @@ import app.pulse.android.service.PlayerService
 import app.pulse.android.service.ServiceNotifications
 import app.pulse.android.service.downloadState
 import app.pulse.android.ui.components.BottomSheetMenu
+import app.pulse.android.ui.components.BottomSheetState
 import app.pulse.android.ui.components.rememberBottomSheetState
 import app.pulse.android.ui.components.themed.LinearProgressIndicator
 import app.pulse.android.ui.screens.albumRoute
@@ -136,9 +138,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import java.io.File
-
 
 private const val TAG = "MainActivity"
 private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -178,7 +178,6 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -264,7 +263,8 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 key = vm.binder,
                 dismissedBound = 0.dp,
                 collapsedBound = Dimensions.items.collapsedPlayerHeight + bottomDp,
-                expandedBound = maxHeight
+                expandedBound = maxHeight,
+                initialAnchor = BottomSheetState.Anchor.Collapsed
             )
 
             val playerAwareWindowInsets = remember(
@@ -353,7 +353,7 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                     ) = when {
                         mediaItem == null -> {
                             maybeExitPip()
-                            playerBottomSheetState.dismissSoft()
+                            playerBottomSheetState.collapseSoft()
                         }
 
                         reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED &&

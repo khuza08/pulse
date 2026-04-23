@@ -98,6 +98,8 @@
     <string name="artist_has_no_singles">This artist hasn\'t released a single yet</string>
     <string name="error_message">An error has occurred</string>
     <string name="error_local_music_deleted">This local music file does not exist anymore</string>
+    <string name="no_music_played">No music played</string>
+
     <string name="error_network">A network error has occurred</string>
     <string name="error_unplayable">Couldn\'t find a playable audio format</string>
     <string name="error_source_deleted">The original video source of this song has been deleted</string>

@@ -22,8 +22,8 @@ import kotlin.time.Duration.Companion.seconds
 
 private const val AGENT = "Pulse (https://github.com/khuza08/Pulse)"
 
-
 object LrcLib {
+
     private val client by lazy {
         HttpClient(CIO) {
             install(ContentNegotiation) {
