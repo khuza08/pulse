@@ -1,5 +1,6 @@
 <div align="center">
-    <img src="./app/src/main/ic_launcher-playstore.png" width="128" height="128" style="display: block; margin: 0 auto"/>
+    <img src="./app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png" width="128" height="128" style="display: block; margin: 0 auto"/>
+
     <h1>Pulse</h1>
     <p>An Android application for seamless music streaming</p>
 </div>
