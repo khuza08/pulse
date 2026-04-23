@@ -12,7 +12,7 @@ plugins {
 android {
     val appId = "com.elza.pulse"
 
-    namespace = appId
+    namespace = "app.pulse.android"
     compileSdk = 36
 
     val abis = listOf("arm64-v8a")

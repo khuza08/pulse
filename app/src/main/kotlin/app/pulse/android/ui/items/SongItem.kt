@@ -158,7 +158,7 @@ private fun SongItem(
             ) {
                 AsyncImage(
                     model = thumbnailUrl,
-                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    error = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

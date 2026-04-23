@@ -156,7 +156,7 @@ fun Modifier.pip(
         if (actions != null) setActions(
             actions.all.values.map {
                 RemoteAction(
-                    it.icon ?: Icon.createWithResource(activity, R.drawable.ic_launcher_foreground),
+                    it.icon ?: Icon.createWithResource(activity, R.mipmap.ic_launcher_foreground),
                     it.title.orEmpty(),
                     it.contentDescription.orEmpty(),
                     with(activity) { it.pendingIntent }
