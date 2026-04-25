@@ -29,10 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -110,10 +107,6 @@ fun FloatingMiniPlayer(
     val activeMediaItem = mediaItem ?: historyMediaItem
     val metadata = activeMediaItem?.toUiMedia(duration)
 
-    val progress = runCatching {
-        if (duration.absoluteValue > 0) position.toFloat() / duration.absoluteValue else 0f
-    }.getOrElse { 0f }
-
     Box(
         modifier = modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -124,18 +117,6 @@ fun FloatingMiniPlayer(
                 enabled = activeMediaItem != null,
                 onClick = onClick
             )
-            .drawBehind {
-                if (activeMediaItem != null) {
-                    drawRect(
-                        color = colorPalette.collapsedPlayerProgressBar,
-                        topLeft = Offset.Zero,
-                        size = Size(
-                            width = size.width * progress,
-                            height = size.height
-                        )
-                    )
-                }
-            }
             .fillMaxWidth()
             .height(Dimensions.items.collapsedPlayerHeight)
     ) {
