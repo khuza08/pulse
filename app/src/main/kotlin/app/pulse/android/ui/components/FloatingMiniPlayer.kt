@@ -109,7 +109,7 @@ fun FloatingMiniPlayer(
 
     Box(
         modifier = modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 24.dp, vertical = 24.dp)
             .shadow(elevation = 8.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
