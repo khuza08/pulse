@@ -324,6 +324,15 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                             )
                         }
 
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        ) {
+                            app.pulse.android.ui.components.FloatingMiniPlayer(
+                                onClick = { playerBottomSheetState.expandSoft() }
+                            )
+                            BottomSheetMenu()
+                        }
+
                         CompositionLocalProvider(
                             LocalAppearance provides LocalAppearance.current.let {
                                 if (it.colorPalette.isDark && AppearancePreferences.darkness == Darkness.AMOLED) {
@@ -335,15 +344,6 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                                 layoutState = playerBottomSheetState,
                                 modifier = Modifier.align(Alignment.BottomCenter)
                             )
-                        }
-
-                        androidx.compose.foundation.layout.Column(
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                        ) {
-                            app.pulse.android.ui.components.FloatingMiniPlayer(
-                                onClick = { playerBottomSheetState.expandSoft() }
-                            )
-                            BottomSheetMenu()
                         }
                     }
                 }
