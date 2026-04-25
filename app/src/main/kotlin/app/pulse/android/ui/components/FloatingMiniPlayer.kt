@@ -140,7 +140,9 @@ fun FloatingMiniPlayer(
             .height(Dimensions.items.collapsedPlayerHeight)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -154,6 +156,7 @@ fun FloatingMiniPlayer(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(Dimensions.items.collapsedPlayerHeight)
+                        .padding(8.dp)
                         .clip(CircleShape)
                         .background(colorPalette.background0)
                 )
