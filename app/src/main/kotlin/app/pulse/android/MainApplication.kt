@@ -262,9 +262,9 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
             val playerBottomSheetState = rememberBottomSheetState(
                 key = vm.binder,
                 dismissedBound = 0.dp,
-                collapsedBound = Dimensions.items.collapsedPlayerHeight + bottomDp,
+                collapsedBound = 0.dp,
                 expandedBound = maxHeight,
-                initialAnchor = BottomSheetState.Anchor.Collapsed
+                initialAnchor = BottomSheetState.Anchor.Dismissed
             )
 
             val playerAwareWindowInsets = remember(
@@ -274,11 +274,10 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 imeVisible,
                 imeBottomDp
             ) {
+                val baseBottom = animatedBottomDp + Dimensions.items.collapsedPlayerHeight + 16.dp + 80.dp
                 val bottom =
                     if (imeVisible) imeBottomDp.coerceAtLeast(playerBottomSheetState.value)
-                    else playerBottomSheetState.value.coerceIn(
-                        animatedBottomDp..playerBottomSheetState.collapsedBound
-                    )
+                    else playerBottomSheetState.value.coerceAtLeast(baseBottom)
 
                 windowInsets
                     .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -309,39 +308,44 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 ) else CompositionLocalProvider(
                     LocalPlayerAwareWindowInsets provides playerAwareWindowInsets
                 ) {
-                    val isDownloading by downloadState.collectAsState()
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        val isDownloading by downloadState.collectAsState()
 
-                    Box {
                         HomeScreen()
-                    }
 
-                    AnimatedVisibility(
-                        visible = isDownloading,
-                        modifier = Modifier.padding(playerAwareWindowInsets.asPaddingValues())
-                    ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.TopCenter)
-                        )
-                    }
-
-                    CompositionLocalProvider(
-                        LocalAppearance provides LocalAppearance.current.let {
-                            if (it.colorPalette.isDark && AppearancePreferences.darkness == Darkness.AMOLED) {
-                                it.copy(colorPalette = it.colorPalette.amoled())
-                            } else it
+                        AnimatedVisibility(
+                            visible = isDownloading,
+                            modifier = Modifier.padding(playerAwareWindowInsets.asPaddingValues())
+                        ) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.TopCenter)
+                            )
                         }
-                    ) {
-                        Player(
-                            layoutState = playerBottomSheetState,
-                            modifier = Modifier.align(Alignment.BottomCenter)
-                        )
-                    }
 
-                    BottomSheetMenu(
-                        modifier = Modifier.align(Alignment.BottomCenter)
-                    )
+                        CompositionLocalProvider(
+                            LocalAppearance provides LocalAppearance.current.let {
+                                if (it.colorPalette.isDark && AppearancePreferences.darkness == Darkness.AMOLED) {
+                                    it.copy(colorPalette = it.colorPalette.amoled())
+                                } else it
+                            }
+                        ) {
+                            Player(
+                                layoutState = playerBottomSheetState,
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                            )
+                        }
+
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        ) {
+                            app.pulse.android.ui.components.FloatingMiniPlayer(
+                                onClick = { playerBottomSheetState.expandSoft() }
+                            )
+                            BottomSheetMenu()
+                        }
+                    }
                 }
             }
 
@@ -350,21 +354,25 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                     override fun onMediaItemTransition(
                         mediaItem: MediaItem?,
                         reason: Int
-                    ) = when {
-                        mediaItem == null -> {
-                            maybeExitPip()
-                            playerBottomSheetState.collapseSoft()
+                    ) {
+                        when {
+                            mediaItem == null -> {
+                                maybeExitPip()
+                                // Do nothing, let it stay dismissed
+                            }
+
+                            reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED &&
+                                mediaItem.mediaMetadata.extras?.songBundle?.isFromPersistentQueue != true -> {
+                                if (AppearancePreferences.openPlayer) playerBottomSheetState.expandSoft()
+                                else Unit
+                            }
+
+                            playerBottomSheetState.dismissed -> {
+                                // Do nothing, mini player is always visible
+                            }
+
+                            else -> Unit
                         }
-
-                        reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED &&
-                            mediaItem.mediaMetadata.extras?.songBundle?.isFromPersistentQueue != true -> {
-                            if (AppearancePreferences.openPlayer) playerBottomSheetState.expandSoft()
-                            else Unit
-                        }
-
-                        playerBottomSheetState.dismissed -> playerBottomSheetState.collapseSoft()
-
-                        else -> Unit
                     }
                 }
             }

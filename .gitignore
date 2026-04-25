@@ -48,3 +48,4 @@ gradle-app.setting
 /app/src/main/python/*.pyc
 /app/src/main/python/*.pyo
 /app/src/main/python/__pycache__/
+errors.txt
