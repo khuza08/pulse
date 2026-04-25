@@ -117,7 +117,6 @@ fun FloatingMiniPlayer(
     Box(
         modifier = modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .alpha(if (activeMediaItem == null) 0.6f else 1f)
             .shadow(elevation = 8.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
