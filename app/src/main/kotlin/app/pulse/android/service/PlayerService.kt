@@ -982,7 +982,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
                 .setSmallIcon(
-                    player.playerError?.let { R.drawable.alert_circle } ?: R.drawable.app_icon
+                    player.playerError?.let { R.drawable.alert_circle } ?: R.drawable.ic_launcher_monochrome
                 )
                 .setOngoing(false)
                 .setContentIntent(
