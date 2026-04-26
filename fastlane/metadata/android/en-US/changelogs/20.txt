@@ -1,2 +1,0 @@
-* Improved yt-dlp reliability
-* Performance improvements

@@ -1,2 +1,0 @@
-* Bump all dependencies
-* Unbreak yt-dlp

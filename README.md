@@ -7,13 +7,13 @@
 ---
 
 <p align="center">
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
+  <img src="./assets/screenshots/1.png" width="30%" />
+  <img src="./assets/screenshots/2.png" width="30%" />
+  <img src="./assets/screenshots/3.png" width="30%" />
 
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="30%" />
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="30%" />
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="30%" />
+  <img src="./assets/screenshots/4.png" width="30%" />
+  <img src="./assets/screenshots/5.png" width="30%" />
+  <img src="./assets/screenshots/6.png" width="30%" />
 </p>
 
 ## Features
@@ -44,16 +44,6 @@ alt="Get it on GitHub"
 height="80"
 align="center">](https://github.com/khuza08/Pulse/releases/latest)
 
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-alt="Get it on F-Droid"
-height="80"
-align="center">](https://repo.pulse.app/)
-
-[<img src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png"
-alt="Get it on Obtainium"
-height="54"
-align="center">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/khuza08/Pulse/)
 
 
 ## Acknowledgments
