@@ -111,16 +111,14 @@ fun FloatingMiniPlayer(
 
     Box(
         modifier = modifier
-            .padding(horizontal = 24.dp, vertical = 24.dp)
-            .shadow(elevation = 8.dp, shape = CircleShape)
+            .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
+            .height(Dimensions.items.collapsedPlayerHeight)
             .clickable(
                 enabled = activeMediaItem != null,
                 onClick = onClick
             )
-            .fillMaxWidth()
-            .height(Dimensions.items.collapsedPlayerHeight)
     ) {
         Row(
             modifier = Modifier

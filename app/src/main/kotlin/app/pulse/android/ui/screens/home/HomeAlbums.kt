@@ -120,8 +120,7 @@ fun HomeAlbums(
 
         FloatingActionsContainerWithScrollToTop(
             lazyListState = lazyListState,
-            icon = R.drawable.search,
-            onClick = onSearchClick
+            icon = null
         )
     }
 }

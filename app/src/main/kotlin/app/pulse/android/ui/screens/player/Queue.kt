@@ -146,8 +146,11 @@ fun Queue(
 
     var windows by remember { mutableStateOf(binder.player.currentTimeline.windows) }
     var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
-    var previousMediaId by remember { 
-        mutableStateOf(windows.getOrNull(mediaItemIndex)?.mediaItem?.mediaId) 
+    var previousMediaId by remember {
+        mutableStateOf(
+            if (mediaItemIndex >= 0) windows.getOrNull(mediaItemIndex)?.mediaItem?.mediaId
+            else null
+        )
     }
 
     val lazyListState = rememberLazyListState()
@@ -175,6 +178,7 @@ fun Queue(
     LaunchedEffect(mediaItemIndex, shouldLoadSuggestions) {
         // TODO: I hate all of this
         runCatching {
+            if (mediaItemIndex < 0) return@LaunchedEffect
             val newMediaId = windows.getOrNull(mediaItemIndex)?.mediaItem?.mediaId ?: return@LaunchedEffect
             if (previousMediaId == newMediaId && suggestions?.getOrNull()
                     ?.isNotEmpty() == true

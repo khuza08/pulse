@@ -12,6 +12,7 @@ import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import android.provider.MediaStore
 import android.util.Log
+import app.pulse.android.ui.screens.searchRoute
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -19,9 +20,19 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -45,15 +56,18 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
@@ -308,6 +322,7 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 ) else CompositionLocalProvider(
                     LocalPlayerAwareWindowInsets provides playerAwareWindowInsets
                 ) {
+                    val coroutineScope = rememberCoroutineScope()
                     Box(modifier = Modifier.fillMaxSize()) {
                         val isDownloading by downloadState.collectAsState()
 
@@ -324,13 +339,11 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                             )
                         }
 
-                        androidx.compose.foundation.layout.Column(
+                        FloatingDock(
+                            onPlayerClick = { playerBottomSheetState.expandSoft() },
+                            onSearchClick = { coroutineScope.launch { searchRoute.ensureGlobal("") } },
                             modifier = Modifier.align(Alignment.BottomCenter)
-                        ) {
-                            app.pulse.android.ui.components.FloatingMiniPlayer(
-                                onClick = { playerBottomSheetState.expandSoft() }
-                            )
-                        }
+                        )
 
                         CompositionLocalProvider(
                             LocalAppearance provides LocalAppearance.current.let {
@@ -454,6 +467,54 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
         super.onUserLeaveHint()
 
         if (AppearancePreferences.autoPip && vm.binder?.player?.shouldBePlaying == true) maybeEnterPip()
+    }
+}
+
+@Composable
+private fun FloatingDock(
+    onPlayerClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        app.pulse.android.ui.components.FloatingMiniPlayer(
+            onClick = onPlayerClick,
+            modifier = Modifier.weight(1f)
+        )
+
+        FloatingSearchButton(
+            onClick = onSearchClick
+        )
+    }
+}
+
+@Composable
+private fun FloatingSearchButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val (colorPalette) = LocalAppearance.current
+    Box(
+        modifier = modifier
+            .size(Dimensions.items.collapsedPlayerHeight)
+            .shadow(elevation = 12.dp, shape = CircleShape)
+            .background(colorPalette.background1, CircleShape)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.search),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(colorPalette.text),
+            modifier = Modifier.size(24.dp)
+        )
     }
 }
 
