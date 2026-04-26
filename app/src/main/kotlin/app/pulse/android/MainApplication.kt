@@ -330,7 +330,6 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                             app.pulse.android.ui.components.FloatingMiniPlayer(
                                 onClick = { playerBottomSheetState.expandSoft() }
                             )
-                            BottomSheetMenu()
                         }
 
                         CompositionLocalProvider(
@@ -345,6 +344,8 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                                 modifier = Modifier.align(Alignment.BottomCenter)
                             )
                         }
+                        
+                        BottomSheetMenu()
                     }
                 }
             }
