@@ -1,0 +1,54 @@
+name: Nightly Telegram Build
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          allow-prereleases: true
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.ANDROID_NIGHTLY_KEYSTORE_BASE64 }}" | base64 --decode > app/release.jks
+
+      - name: Build Nightly APK
+        run: ./gradlew assembleNightly
+        env:
+          ANDROID_NIGHTLY_KEYSTORE: release.jks
+          ANDROID_NIGHTLY_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_PASSWORD }}
+          ANDROID_NIGHTLY_KEYSTORE_ALIAS: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_ALIAS }}
+
+      - name: Send to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            Pulse: New Nightly Build
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+          document: "app/build/outputs/apk/nightly/*.apk"
