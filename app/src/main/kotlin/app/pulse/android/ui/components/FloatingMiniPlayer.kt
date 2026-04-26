@@ -181,15 +181,6 @@ fun FloatingMiniPlayer(
                             modifier = Modifier.padding(all = 8.dp).size(24.dp)
                         )
                     }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    IconButton(
-                        onClick = { binder?.player?.forceSeekToNext() },
-                        icon = R.drawable.play_skip_forward,
-                        color = colorPalette.text,
-                        modifier = Modifier.padding(all = 8.dp).size(24.dp)
-                    )
                 }
             }
         }
