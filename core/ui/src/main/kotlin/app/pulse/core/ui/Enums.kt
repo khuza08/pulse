@@ -18,7 +18,8 @@ enum class ThumbnailRoundness(val dp: Dp) {
 enum class ColorSource {
     Default,
     Dynamic,
-    MaterialYou
+    MaterialYou,
+    Pink
 }
 
 enum class ColorMode {

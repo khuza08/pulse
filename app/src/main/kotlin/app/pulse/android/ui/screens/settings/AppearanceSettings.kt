@@ -7,6 +7,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,6 +27,7 @@ import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.ThumbnailRoundness
 import app.pulse.core.ui.googleFontsAvailable
 import app.pulse.core.ui.utils.isAtLeastAndroid13
+import kotlinx.collections.immutable.toImmutableList
 
 @Route
 @Composable
@@ -36,9 +38,19 @@ fun AppearanceSettings() = with(AppearancePreferences) {
 
     SettingsCategoryScreen(title = stringResource(R.string.appearance)) {
         SettingsGroup(title = stringResource(R.string.colors)) {
-            EnumValueSelectorSettingsEntry(
+            val systemDark = isSystemInDarkTheme()
+            val isEffectiveDark = remember(colorMode, systemDark) {
+                colorMode == ColorMode.Dark || (colorMode == ColorMode.System && systemDark)
+            }
+
+            ValueSelectorSettingsEntry(
                 title = stringResource(R.string.color_source),
                 selectedValue = colorSource,
+                values = remember(isEffectiveDark) {
+                    ColorSource.entries
+                        .filter { !isEffectiveDark || it != ColorSource.Pink }
+                        .toImmutableList()
+                },
                 onValueSelect = { colorSource = it },
                 valueText = { it.nameLocalized }
             )
@@ -243,6 +255,7 @@ val ColorSource.nameLocalized
             ColorSource.Default -> R.string.color_source_default
             ColorSource.Dynamic -> R.string.color_source_dynamic
             ColorSource.MaterialYou -> R.string.color_source_material_you
+            ColorSource.Pink -> R.string.color_source_pink
         }
     )
 

@@ -22,6 +22,7 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
@@ -51,6 +52,7 @@ import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -114,6 +116,8 @@ import app.pulse.android.utils.toast
 import app.pulse.compose.persist.LocalPersistMap
 import app.pulse.compose.persist.PersistMap
 import app.pulse.compose.preferences.PreferencesHolder
+import app.pulse.core.ui.ColorMode
+import app.pulse.core.ui.ColorSource
 import app.pulse.core.ui.Darkness
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
@@ -218,6 +222,18 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
         content: @Composable BoxWithConstraintsScope.() -> Unit
     ) = with(AppearancePreferences) {
         val sampleBitmap = vm.binder.collectProvidedBitmapAsState()
+
+        val systemDark = isSystemInDarkTheme()
+        val isDark = remember(colorMode, systemDark) {
+            colorMode == ColorMode.Dark || (colorMode == ColorMode.System && systemDark)
+        }
+
+        LaunchedEffect(isDark, colorSource) {
+            if (isDark && colorSource == ColorSource.Pink) {
+                colorSource = ColorSource.MaterialYou
+            }
+        }
+
         val appearance = appearance(
             source = colorSource,
             mode = colorMode,

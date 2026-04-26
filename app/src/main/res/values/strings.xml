@@ -170,6 +170,7 @@
     <string name="color_source_default">Default</string>
     <string name="color_source_dynamic">Dynamic</string>
     <string name="color_source_material_you">Material You</string>
+    <string name="color_source_pink">Pink</string>
     <string name="darkness">Darkness</string>
     <string name="darkness_normal">Normal</string>
     <string name="darkness_pureblack">PureBlack</string>

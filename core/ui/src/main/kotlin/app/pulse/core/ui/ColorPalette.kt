@@ -62,6 +62,19 @@ val defaultDarkPalette = ColorPalette(
     isDark = true
 )
 
+val pinkLightPalette = ColorPalette(
+    background0 = Color(0xffffe5ec),
+    background1 = Color(0xffffd1dc),
+    background2 = Color(0xffffb7c5),
+    accent = Color(0xffff8fab),
+    onAccent = Color.White,
+    text = Color(0xff4d001a),
+    textSecondary = Color(0xff7a4d5a),
+    textDisabled = Color(0xffbdbdbd),
+    isDefault = false,
+    isDark = false
+)
+
 private fun lightColorPalette(accent: Hsl) = lightColorPalette(
     hue = accent.hue,
     saturation = accent.saturation
@@ -170,6 +183,7 @@ fun accentColorOf(
         ?: defaultAccentColor
 
     ColorSource.MaterialYou -> materialAccentColor?.hsl ?: defaultAccentColor
+    ColorSource.Pink -> pinkLightPalette.accent.hsl
 }
 
 fun dynamicAccentColorOf(
@@ -232,6 +246,10 @@ fun colorPaletteOf(
     materialAccentColor: Color?,
     sampleBitmap: Bitmap?
 ): ColorPalette {
+    if (source == ColorSource.Pink) {
+        return if (isDark) defaultDarkPalette else pinkLightPalette
+    }
+
     val accentColor = accentColorOf(
         source = source,
         isDark = isDark,
