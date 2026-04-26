@@ -181,7 +181,7 @@ fun FloatingMiniPlayer(
                                     indication = null,
                                     onClick = {
                                         if (isPlaying) binder?.player?.pause()
-                                        else if (mediaItem != null) binder?.player?.forcePlay(mediaItem!!)
+                                        else if (mediaItem != null) binder?.player?.play()
                                         else historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
                                     }
                                 ),
