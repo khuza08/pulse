@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png" width="128" height="128" style="display: block; margin: 0 auto"/>
+    <img src="./app/src/main/ic_launcher-playstore.png" width="128" height="128" style="display: block; margin: 0 auto"/>
     <h1>Pulse</h1>
     <p>Music streaming for everyone</p>
 </div>
@@ -32,6 +32,10 @@
 - Listen from your car using Android Auto
 - Open YouTube/YouTube Music links (`watch`, `playlist`, `channel`, etc.) with Pulse
 - Ridiculously lightweight APK
+
+## Security
+
+[![VirusTotal Scan](https://img.shields.io/badge/VirusTotal-Clean-brightgreen?style=for-the-badge&logo=virustotal)](https://www.virustotal.com/gui/file/098751fc9086e00933343bfeb866509b2c76e168840fa83d784261e4f332e138/detection)
 
 ## Installation
 
