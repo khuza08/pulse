@@ -234,6 +234,13 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
             }
         }
 
+        LaunchedEffect(app.pulse.android.preferences.DataPreferences.versionCheckPeriod) {
+            if (app.pulse.android.preferences.DataPreferences.versionCheckPeriod != app.pulse.android.preferences.DataPreferences.VersionCheckPeriod.Off) {
+                kotlinx.coroutines.delay(10_000)
+                app.pulse.android.service.VersionCheckWorker.executeOneTime(this@MainActivity.applicationContext)
+            }
+        }
+
         val appearance = appearance(
             source = colorSource,
             mode = colorMode,

@@ -1,6 +1,7 @@
 package app.pulse.android.ui.screens.settings
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -41,6 +43,7 @@ import app.pulse.android.ui.components.themed.CircularProgressIndicator
 import app.pulse.android.ui.components.themed.DefaultDialog
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.screens.Route
+
 import app.pulse.android.utils.bold
 import app.pulse.android.utils.center
 import app.pulse.android.utils.hasPermission
@@ -58,6 +61,9 @@ import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
 
 private val VERSION_NAME = BuildConfig.VERSION_NAME.substringBeforeLast("-")
 private const val REPO_OWNER = "khuza08"
@@ -65,100 +71,6 @@ private const val REPO_NAME = "pulse"
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 private val permission = Manifest.permission.POST_NOTIFICATIONS
-
-class VersionCheckWorker(
-    context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
-    companion object {
-        private const val WORK_TAG = "version_check_worker"
-
-        fun upsert(context: Context, period: Duration?) = runCatching {
-            val workManager = WorkManager.getInstance(context)
-
-            if (period == null) {
-                workManager.cancelAllWorkByTag(WORK_TAG)
-                return@runCatching
-            }
-
-            val request = PeriodicWorkRequestBuilder<VersionCheckWorker>(period.toJavaDuration())
-                .addTag(WORK_TAG)
-                .setConstraints(
-                    Constraints(
-                        requiredNetworkType = NetworkType.CONNECTED,
-                        requiresBatteryNotLow = true
-                    )
-                )
-                .build()
-
-            workManager.enqueueUniquePeriodicWork(
-                /* uniqueWorkName = */ WORK_TAG,
-                /* existingPeriodicWorkPolicy = */ ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-                /* periodicWork = */ request
-            )
-
-            Unit
-        }.also { it.exceptionOrNull()?.printStackTrace() }
-    }
-
-    override suspend fun doWork(): Result = with(applicationContext) {
-        if (isAtLeastAndroid13 && !hasPermission(permission)) return Result.retry()
-
-        val result = withContext(Dispatchers.IO) {
-            VERSION_NAME.version
-                .getNewerVersion()
-                .also { it?.exceptionOrNull()?.printStackTrace() }
-        }
-
-        result?.getOrNull()?.let { release ->
-            ServiceNotifications.version.sendNotification(applicationContext) {
-                this
-                    .setSmallIcon(R.drawable.download)
-                    .setContentTitle(getString(R.string.new_version_available))
-                    .setContentText(getString(R.string.redirect_github))
-                    .also {
-                        runCatching { release.frontendUrl.toString().toUri() }.getOrNull()
-                            ?.let { url ->
-                                it.setContentIntent(pendingIntent(Intent(Intent.ACTION_VIEW, url)))
-                            }
-                        it.setStyle(
-                            NotificationCompat
-                                .BigTextStyle(it)
-                                .bigText(getString(R.string.new_version_available))
-                        )
-                    }
-                    .setAutoCancel(true)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-            }
-        }
-
-        return when {
-            result == null || result.isFailure -> Result.retry()
-            result.isSuccess -> Result.success()
-            else -> Result.failure() // Unreachable
-        }
-    }
-}
-
-private suspend fun Version.getNewerVersion(
-    repoOwner: String = REPO_OWNER,
-    repoName: String = REPO_NAME,
-    contentType: String = "application/vnd.android.package-archive"
-) = GitHub.releases(
-    owner = repoOwner,
-    repo = repoName
-)?.mapCatching { releases ->
-    releases
-        .sortedByDescending { it.publishedAt }
-        .firstOrNull { release ->
-            !release.draft &&
-                !release.preRelease &&
-                release.tag.version > this &&
-                release.assets.any {
-                    it.contentType == contentType && it.state == Release.Asset.State.Uploaded
-                }
-        }
-}
 
 @Route
 @Composable
@@ -219,13 +131,14 @@ fun About() = SettingsCategoryScreen(
         )
     }
 
-    var newVersionDialogOpened by rememberSaveable { mutableStateOf(false) }
 
     SettingsGroup(title = stringResource(R.string.version)) {
         SettingsEntry(
             title = stringResource(R.string.check_new_version),
             text = stringResource(R.string.current_version, VERSION_NAME),
-            onClick = { newVersionDialogOpened = true }
+            onClick = {
+                app.pulse.android.service.VersionCheckWorker.executeOneTime(context.applicationContext)
+            }
         )
 
         EnumValueSelectorSettingsEntry(
@@ -236,53 +149,11 @@ fun About() = SettingsCategoryScreen(
                 if (isAtLeastAndroid13 && it.period != null && !hasPermission)
                     launcher.launch(permission)
 
-                VersionCheckWorker.upsert(context.applicationContext, it.period)
+                app.pulse.android.service.VersionCheckWorker.upsert(context.applicationContext, it.period)
             },
             valueText = { it.displayName() }
         )
     }
 
-    if (newVersionDialogOpened) DefaultDialog(
-        onDismiss = { newVersionDialogOpened = false }
-    ) {
-        var newerVersion: Result<Release?>? by remember { mutableStateOf(null) }
 
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                newerVersion = VERSION_NAME.version
-                    .getNewerVersion()
-                    ?.onFailure(Throwable::printStackTrace)
-            }
-        }
-
-        newerVersion?.getOrNull()?.let {
-            BasicText(
-                text = stringResource(R.string.new_version_available),
-                style = typography.xs.semiBold.center
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            BasicText(
-                text = it.name ?: it.tag,
-                style = typography.m.bold.center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SecondaryTextButton(
-                text = stringResource(R.string.more_information),
-                onClick = { uriHandler.openUri(it.frontendUrl.toString()) }
-            )
-        } ?: newerVersion?.exceptionOrNull()?.let {
-            BasicText(
-                text = stringResource(R.string.error_github),
-                style = typography.xs.semiBold.center,
-                modifier = Modifier.padding(all = 24.dp)
-            )
-        } ?: if (newerVersion?.isSuccess == true) BasicText(
-            text = stringResource(R.string.up_to_date),
-            style = typography.xs.semiBold.center
-        ) else CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-    }
 }

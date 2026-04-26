@@ -166,6 +166,12 @@
     <string name="report_bug_description">If you need help with a bug you can file an issue on GitHub (click to redirect)</string>
     <string name="request_feature">Request a feature or suggest an idea</string>
     <string name="redirect_github">You will be redirected to GitHub</string>
+    <string name="downloading_update">Downloading update…</string>
+    <string name="update_ready">Update ready</string>
+    <string name="install_update">Tap to install the update</string>
+    <string name="download">Tap to download</string>
+    <string name="auto_update">Auto-download updates</string>
+    <string name="auto_update_description">Automatically download new versions over any network and prompt to install</string>
     <string name="color_source">Accent color source</string>
     <string name="color_source_default">Default</string>
     <string name="color_source_dynamic">Dynamic</string>
