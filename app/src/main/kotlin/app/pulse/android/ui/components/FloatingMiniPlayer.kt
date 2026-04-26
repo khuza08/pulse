@@ -7,6 +7,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -170,16 +172,28 @@ fun FloatingMiniPlayer(
                         transitionSpec = { fadeIn() togetherWith fadeOut() },
                         label = ""
                     ) { isPlaying ->
-                        IconButton(
-                            onClick = {
-                                if (isPlaying) binder?.player?.pause()
-                                else if (mediaItem != null) binder?.player?.forcePlay(mediaItem!!)
-                                else historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
-                            },
-                            icon = if (isPlaying) R.drawable.pause else R.drawable.play,
-                            color = colorPalette.text,
-                            modifier = Modifier.padding(all = 8.dp).size(24.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(all = 8.dp)
+                                .size(24.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = {
+                                        if (isPlaying) binder?.player?.pause()
+                                        else if (mediaItem != null) binder?.player?.forcePlay(mediaItem!!)
+                                        else historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            androidx.compose.foundation.Image(
+                                painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(colorPalette.text),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
