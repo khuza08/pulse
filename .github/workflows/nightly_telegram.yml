@@ -3,8 +3,6 @@ name: Nightly Telegram Build
 on:
   schedule:
     - cron: '0 0 * * *'
-  push:
-    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
@@ -15,7 +13,34 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Check for recent commits
+        id: check_commits
+        run: |
+          COMMIT_TIME=$(git log -1 --format=%ct)
+          CURRENT_TIME=$(date +%s)
+          DIFF_HOURS=$(( (CURRENT_TIME - COMMIT_TIME) / 3600 ))
+          
+          if [ $DIFF_HOURS -ge 24 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "No commits in the last 24 hours. Skipping nightly build."
+            echo "run_build=false" >> $GITHUB_OUTPUT
+          else
+            echo "New commits found (or manual trigger). Running build."
+            echo "run_build=true" >> $GITHUB_OUTPUT
+            
+            # Extract all commit messages in the last 24 hours (multi-line output)
+            EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+            echo "commit_msg<<$EOF" >> $GITHUB_OUTPUT
+            if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+              git log -1 --pretty=format:"- %s" >> $GITHUB_OUTPUT
+            else
+              git log --since="24 hours ago" --pretty=format:"- %s" >> $GITHUB_OUTPUT
+            fi
+            echo "" >> $GITHUB_OUTPUT
+            echo "$EOF" >> $GITHUB_OUTPUT
+          fi
+
       - name: set up JDK 17
+        if: steps.check_commits.outputs.run_build == 'true'
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -23,26 +48,38 @@ jobs:
           cache: gradle
 
       - name: Grant execute permission for gradlew
+        if: steps.check_commits.outputs.run_build == 'true'
         run: chmod +x gradlew
 
       - name: Set up Python 3.14
+        if: steps.check_commits.outputs.run_build == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.14'
           allow-prereleases: true
 
       - name: Decode Keystore
+        if: steps.check_commits.outputs.run_build == 'true'
         run: |
           echo "${{ secrets.ANDROID_NIGHTLY_KEYSTORE_BASE64 }}" | base64 --decode > app/release.jks
 
       - name: Build Nightly APK
+        if: steps.check_commits.outputs.run_build == 'true'
         run: ./gradlew assembleNightly
         env:
           ANDROID_NIGHTLY_KEYSTORE: release.jks
           ANDROID_NIGHTLY_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_PASSWORD }}
           ANDROID_NIGHTLY_KEYSTORE_ALIAS: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_ALIAS }}
 
+      - name: Rename APK
+        if: steps.check_commits.outputs.run_build == 'true'
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          APK_PATH=$(find app/build/outputs/apk/nightly -name "*.apk" | head -n 1)
+          mv "$APK_PATH" "app/build/outputs/apk/nightly/pulse-nightly-$SHORT_SHA.apk"
+
       - name: Send to Telegram
+        if: steps.check_commits.outputs.run_build == 'true'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
@@ -51,4 +88,5 @@ jobs:
             Pulse: New Nightly Build
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
+            Message: ${{ steps.check_commits.outputs.commit_msg }}
           document: "app/build/outputs/apk/nightly/*.apk"
