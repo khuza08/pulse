@@ -197,22 +197,25 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        MonetCompat.setup(this)
-        _monet = MonetCompat.getInstance()
-        monet.setDefaultPalette()
-        monet.addMonetColorsChangedListener(
-            listener = this,
-            notifySelf = false
-        )
-        monet.updateMonetColors()
-        monet.invokeOnReady {
-            setContent()
-        }
+        initializeSystemUI()
+        initializeThemeEngine()
 
         intent?.let { handleIntent(it) }
         addOnNewIntentListener(::handleIntent)
+    }
+
+    private fun initializeSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContent()
+    }
+
+    private fun initializeThemeEngine() {
+        MonetCompat.setup(this)
+        _monet = MonetCompat.getInstance()
+
+        monet.setDefaultPalette()
+        monet.addMonetColorsChangedListener(this, false)
+        monet.updateMonetColors()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
