@@ -54,6 +54,9 @@ import app.pulse.providers.piped.models.Instance
 import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
+import app.pulse.compose.routing.RouteHandler
+import app.pulse.android.ui.screens.GlobalRoutes
+import app.pulse.android.ui.components.themed.Scaffold
 
 @Route
 @Composable
@@ -263,43 +266,63 @@ fun SyncSettings(
         }
     )
 
-    SettingsCategoryScreen(title = stringResource(R.string.sync)) {
-        SettingsDescription(text = stringResource(R.string.sync_description))
+    RouteHandler {
+        GlobalRoutes()
 
-        SettingsGroup(title = stringResource(R.string.piped)) {
-            SettingsEntry(
-                title = stringResource(R.string.add_account),
-                text = stringResource(R.string.add_account_description),
-                onClick = { linkingPiped = true }
-            )
-            SettingsEntry(
-                title = stringResource(R.string.learn_more),
-                text = stringResource(R.string.learn_more_description),
-                onClick = { uriHandler.openUri("https://github.com/TeamPiped/Piped/blob/master/README.md") }
-            )
-        }
-        SettingsGroup(title = stringResource(R.string.piped_sessions)) {
-            if (pipedSessions.isEmpty()) {
-                SettingsGroupSpacer()
+        Content {
+            Scaffold(
+                key = "sync_settings",
+                topIconButtonId = R.drawable.chevron_back,
+                onTopIconButtonClick = pop,
+                tabIndex = 0,
+                onTabChange = {},
+                tabColumnContent = {
+                    tab(0, R.string.sync, R.drawable.settings, canHide = false)
+                }
+            ) {
+                SettingsCategoryScreen(
+                    title = stringResource(R.string.sync),
+                    onBackClick = pop
+                ) {
+                    SettingsDescription(text = stringResource(R.string.sync_description))
 
-                BasicText(
-                    text = stringResource(R.string.no_items_found),
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    style = typography.s.semiBold.center
-                )
-            } else pipedSessions.fastForEachIndexed { i, session ->
-                SettingsEntry(
-                    title = session.username,
-                    text = session.apiBaseUrl.toString(),
-                    onClick = { },
-                    trailingContent = {
-                        IconButton(
-                            onClick = { deletingPipedSession = i },
-                            icon = R.drawable.delete,
-                            color = colorPalette.text
+                    SettingsGroup(title = stringResource(R.string.piped)) {
+                        SettingsEntry(
+                            title = stringResource(R.string.add_account),
+                            text = stringResource(R.string.add_account_description),
+                            onClick = { linkingPiped = true }
+                        )
+                        SettingsEntry(
+                            title = stringResource(R.string.learn_more),
+                            text = stringResource(R.string.learn_more_description),
+                            onClick = { uriHandler.openUri("https://github.com/TeamPiped/Piped/blob/master/README.md") }
                         )
                     }
-                )
+                    SettingsGroup(title = stringResource(R.string.piped_sessions)) {
+                        if (pipedSessions.isEmpty()) {
+                            SettingsGroupSpacer()
+
+                            BasicText(
+                                text = stringResource(R.string.no_items_found),
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                style = typography.s.semiBold.center
+                            )
+                        } else pipedSessions.fastForEachIndexed { i, session ->
+                            SettingsEntry(
+                                title = session.username,
+                                text = session.apiBaseUrl.toString(),
+                                onClick = { },
+                                trailingContent = {
+                                    IconButton(
+                                        onClick = { deletingPipedSession = i },
+                                        icon = R.drawable.delete,
+                                        color = colorPalette.text
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }

@@ -564,6 +564,7 @@ private fun FloatingDock(
                     tabs = navigationState.value?.tabs ?: persistentListOf(),
                     tabIndex = navigationState.value?.tabIndex ?: 0,
                     onTabChange = navigationState.value?.onTabChange ?: {},
+                    onSettingsClick = { settingsRoute.global() },
                     hiddenTabs = navigationState.value?.hiddenTabs ?: persistentListOf(),
                     modifier = Modifier.weight(1f)
                 )

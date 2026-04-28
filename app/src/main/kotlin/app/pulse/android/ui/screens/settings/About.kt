@@ -64,6 +64,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import app.pulse.compose.routing.RouteHandler
+import app.pulse.android.ui.screens.GlobalRoutes
+import app.pulse.android.ui.components.themed.Scaffold
 
 private val VERSION_NAME = BuildConfig.VERSION_NAME.substringBeforeLast("-")
 private const val REPO_OWNER = "khuza08"
@@ -74,86 +77,104 @@ private val permission = Manifest.permission.POST_NOTIFICATIONS
 
 @Route
 @Composable
-fun About() = SettingsCategoryScreen(
-    title = stringResource(R.string.about),
-    description = stringResource(
-        R.string.format_version_credits,
-        VERSION_NAME
-    )
-) {
-    val (_, typography) = LocalAppearance.current
-    val uriHandler = LocalUriHandler.current
-    val context = LocalContext.current
+fun About() {
+    RouteHandler {
+        GlobalRoutes()
 
-    var hasPermission by remember(isCompositionLaunched()) {
-        mutableStateOf(
-            if (isAtLeastAndroid13) context.applicationContext.hasPermission(permission)
-            else true
-        )
-    }
+        Content {
+            Scaffold(
+                key = "about",
+                topIconButtonId = R.drawable.chevron_back,
+                onTopIconButtonClick = pop,
+                tabIndex = 0,
+                onTabChange = {},
+                tabColumnContent = {
+                    tab(0, R.string.about, R.drawable.settings, canHide = false)
+                }
+            ) {
+                SettingsCategoryScreen(
+                    title = stringResource(R.string.about),
+                    description = stringResource(
+                        R.string.format_version_credits,
+                        VERSION_NAME
+                    ),
+                    onBackClick = pop
+                ) {
+                    val (_, typography) = LocalAppearance.current
+                    val uriHandler = LocalUriHandler.current
+                    val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { hasPermission = it }
-    )
+                    var hasPermission by remember(isCompositionLaunched()) {
+                        mutableStateOf(
+                            if (isAtLeastAndroid13) context.applicationContext.hasPermission(permission)
+                            else true
+                        )
+                    }
 
-    SettingsGroup(title = stringResource(R.string.social)) {
-        SettingsEntry(
-            title = stringResource(R.string.github),
-            text = stringResource(R.string.view_source),
-            onClick = {
-                uriHandler.openUri("https://github.com/$REPO_OWNER/$REPO_NAME")
+                    val launcher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.RequestPermission(),
+                        onResult = { hasPermission = it }
+                    )
+
+                    SettingsGroup(title = stringResource(R.string.social)) {
+                        SettingsEntry(
+                            title = stringResource(R.string.github),
+                            text = stringResource(R.string.view_source),
+                            onClick = {
+                                uriHandler.openUri("https://github.com/$REPO_OWNER/$REPO_NAME")
+                            }
+                        )
+                    }
+
+                    SettingsGroup(title = stringResource(R.string.contact)) {
+                        SettingsEntry(
+                            title = stringResource(R.string.report_bug),
+                            text = stringResource(R.string.report_bug_description),
+                            onClick = {
+                                uriHandler.openUri(
+                                    @Suppress("MaximumLineLength")
+                                    "https://github.com/$REPO_OWNER/$REPO_NAME/issues/new?assignees=&labels=bug&template=bug_report.yaml"
+                                )
+                            }
+                        )
+
+                        SettingsEntry(
+                            title = stringResource(R.string.request_feature),
+                            text = stringResource(R.string.redirect_github),
+                            onClick = {
+                                uriHandler.openUri(
+                                    @Suppress("MaximumLineLength")
+                                    "https://github.com/$REPO_OWNER/$REPO_NAME/issues/new?assignees=&labels=enhancement&template=feature_request.md"
+                                )
+                            }
+                        )
+                    }
+
+
+                    SettingsGroup(title = stringResource(R.string.version)) {
+                        SettingsEntry(
+                            title = stringResource(R.string.check_new_version),
+                            text = stringResource(R.string.current_version, VERSION_NAME),
+                            onClick = {
+                                app.pulse.android.service.VersionCheckWorker.executeOneTime(context.applicationContext)
+                            }
+                        )
+
+                        EnumValueSelectorSettingsEntry(
+                            title = stringResource(R.string.version_check),
+                            selectedValue = DataPreferences.versionCheckPeriod,
+                            onValueSelect = onSelect@{
+                                DataPreferences.versionCheckPeriod = it
+                                if (isAtLeastAndroid13 && it.period != null && !hasPermission)
+                                    launcher.launch(permission)
+
+                                app.pulse.android.service.VersionCheckWorker.upsert(context.applicationContext, it.period)
+                            },
+                            valueText = { it.displayName() }
+                        )
+                    }
+                }
             }
-        )
+        }
     }
-
-    SettingsGroup(title = stringResource(R.string.contact)) {
-        SettingsEntry(
-            title = stringResource(R.string.report_bug),
-            text = stringResource(R.string.report_bug_description),
-            onClick = {
-                uriHandler.openUri(
-                    @Suppress("MaximumLineLength")
-                    "https://github.com/$REPO_OWNER/$REPO_NAME/issues/new?assignees=&labels=bug&template=bug_report.yaml"
-                )
-            }
-        )
-
-        SettingsEntry(
-            title = stringResource(R.string.request_feature),
-            text = stringResource(R.string.redirect_github),
-            onClick = {
-                uriHandler.openUri(
-                    @Suppress("MaximumLineLength")
-                    "https://github.com/$REPO_OWNER/$REPO_NAME/issues/new?assignees=&labels=enhancement&template=feature_request.md"
-                )
-            }
-        )
-    }
-
-
-    SettingsGroup(title = stringResource(R.string.version)) {
-        SettingsEntry(
-            title = stringResource(R.string.check_new_version),
-            text = stringResource(R.string.current_version, VERSION_NAME),
-            onClick = {
-                app.pulse.android.service.VersionCheckWorker.executeOneTime(context.applicationContext)
-            }
-        )
-
-        EnumValueSelectorSettingsEntry(
-            title = stringResource(R.string.version_check),
-            selectedValue = DataPreferences.versionCheckPeriod,
-            onValueSelect = onSelect@{
-                DataPreferences.versionCheckPeriod = it
-                if (isAtLeastAndroid13 && it.period != null && !hasPermission)
-                    launcher.launch(permission)
-
-                app.pulse.android.service.VersionCheckWorker.upsert(context.applicationContext, it.period)
-            },
-            valueText = { it.displayName() }
-        )
-    }
-
-
 }

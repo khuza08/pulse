@@ -17,8 +17,16 @@ import app.pulse.android.ui.screens.pipedplaylist.PipedPlaylistScreen
 import app.pulse.android.ui.screens.playlist.PlaylistScreen
 import app.pulse.android.ui.screens.search.SearchScreen
 import app.pulse.android.ui.screens.searchresult.SearchResultScreen
+import app.pulse.android.ui.screens.mood.MoodScreen
+import app.pulse.android.ui.screens.settings.About
+import app.pulse.android.ui.screens.settings.AppearanceSettings
+import app.pulse.android.ui.screens.settings.CacheSettings
+import app.pulse.android.ui.screens.settings.DatabaseSettings
 import app.pulse.android.ui.screens.settings.LogsScreen
+import app.pulse.android.ui.screens.settings.OtherSettings
+import app.pulse.android.ui.screens.settings.PlayerSettings
 import app.pulse.android.ui.screens.settings.SettingsScreen
+import app.pulse.android.ui.screens.settings.SyncSettings
 import app.pulse.android.utils.toast
 import app.pulse.compose.routing.Route0
 import app.pulse.compose.routing.Route1
@@ -48,6 +56,13 @@ val moodRoute = Route1<Mood>("moodRoute")
 val searchResultRoute = Route1<String>("searchResultRoute")
 val searchRoute = Route1<String>("searchRoute")
 val settingsRoute = Route0("settingsRoute")
+val appearanceSettingsRoute = Route0("appearanceSettingsRoute")
+val playerSettingsRoute = Route0("playerSettingsRoute")
+val cacheSettingsRoute = Route0("cacheSettingsRoute")
+val databaseSettingsRoute = Route0("databaseSettingsRoute")
+val syncSettingsRoute = Route0("syncSettingsRoute")
+val otherSettingsRoute = Route0("otherSettingsRoute")
+val aboutSettingsRoute = Route0("aboutSettingsRoute")
 
 @Composable
 fun RouteHandlerScope.GlobalRoutes() {
@@ -86,8 +101,40 @@ fun RouteHandlerScope.GlobalRoutes() {
         )
     }
 
+    moodRoute { mood ->
+        MoodScreen(mood = mood)
+    }
+
     settingsRoute {
         SettingsScreen()
+    }
+
+    appearanceSettingsRoute {
+        AppearanceSettings()
+    }
+
+    playerSettingsRoute {
+        PlayerSettings()
+    }
+
+    cacheSettingsRoute {
+        CacheSettings()
+    }
+
+    databaseSettingsRoute {
+        DatabaseSettings()
+    }
+
+    syncSettingsRoute {
+        SyncSettings()
+    }
+
+    otherSettingsRoute {
+        OtherSettings()
+    }
+
+    aboutSettingsRoute {
+        About()
     }
 
     searchRoute { initialTextInput ->

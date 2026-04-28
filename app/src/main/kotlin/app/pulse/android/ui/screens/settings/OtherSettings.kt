@@ -63,6 +63,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import app.pulse.compose.routing.RouteHandler
+import app.pulse.android.ui.screens.GlobalRoutes
+import app.pulse.android.ui.components.themed.Scaffold
 
 @SuppressLint("BatteryLife")
 @Route
@@ -108,268 +111,286 @@ fun OtherSettings() {
         Database.queriesCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
 
-    SettingsCategoryScreen(
-        title = stringResource(R.string.other),
-        scrollState = scrollState
-    ) {
-        SettingsGroup(title = stringResource(R.string.android_auto)) {
-            SwitchSettingsEntry(
-                title = stringResource(R.string.android_auto),
-                text = stringResource(R.string.android_auto_description),
-                isChecked = isAndroidAutoEnabled,
-                onCheckedChange = { isAndroidAutoEnabled = it }
-            )
+    RouteHandler {
+        GlobalRoutes()
 
-            AnimatedVisibility(visible = isAndroidAutoEnabled) {
-                SettingsDescription(text = stringResource(R.string.android_auto_warning))
-            }
-        }
-        SettingsGroup(title = stringResource(R.string.search_history)) {
-            SwitchSettingsEntry(
-                title = stringResource(R.string.pause_search_history),
-                text = stringResource(R.string.pause_search_history_description),
-                isChecked = DataPreferences.pauseSearchHistory,
-                onCheckedChange = { DataPreferences.pauseSearchHistory = it }
-            )
-
-            AnimatedVisibility(visible = !(DataPreferences.pauseSearchHistory && queriesCount == 0)) {
-                SettingsEntry(
-                    title = stringResource(R.string.clear_search_history),
-                    text = if (queriesCount > 0) stringResource(
-                        R.string.format_clear_search_history_amount,
-                        queriesCount
-                    )
-                    else stringResource(R.string.empty_history),
-                    onClick = { query(Database::clearQueries) },
-                    isEnabled = queriesCount > 0
-                )
-            }
-        }
-        SettingsGroup(title = stringResource(R.string.playlists)) {
-            SwitchSettingsEntry(
-                title = stringResource(R.string.auto_sync_playlists),
-                text = stringResource(R.string.auto_sync_playlists_description),
-                isChecked = DataPreferences.autoSyncPlaylists,
-                onCheckedChange = { DataPreferences.autoSyncPlaylists = it }
-            )
-        }
-        SettingsGroup(title = stringResource(R.string.built_in_playlists)) {
-            IntSettingsEntry(
-                title = stringResource(R.string.top_list_length),
-                text = stringResource(R.string.top_list_length_description),
-                currentValue = DataPreferences.topListLength,
-                setValue = { DataPreferences.topListLength = it },
-                defaultValue = 10,
-                range = 1..500
-            )
-        }
-        SettingsGroup(title = stringResource(R.string.quick_picks)) {
-            EnumValueSelectorSettingsEntry(
-                title = stringResource(R.string.quick_picks_source),
-                selectedValue = DataPreferences.quickPicksSource,
-                onValueSelect = { DataPreferences.quickPicksSource = it },
-                valueText = { it.displayName() }
-            )
-
-            SwitchSettingsEntry(
-                title = stringResource(R.string.quick_picks_cache),
-                text = stringResource(R.string.quick_picks_cache_description),
-                isChecked = DataPreferences.shouldCacheQuickPicks,
-                onCheckedChange = { DataPreferences.shouldCacheQuickPicks = it }
-            )
-        }
-        SettingsGroup(title = stringResource(R.string.dynamic_thumbnails)) {
-            var selectingThumbnailSize by remember { mutableStateOf(false) }
-            SettingsEntry(
-                title = stringResource(R.string.max_dynamic_thumbnail_size),
-                text = stringResource(R.string.max_dynamic_thumbnail_size_description),
-                onClick = { selectingThumbnailSize = true }
-            )
-            if (selectingThumbnailSize) SliderDialog(
-                onDismiss = { selectingThumbnailSize = false },
-                title = stringResource(R.string.max_dynamic_thumbnail_size)
+        Content {
+            Scaffold(
+                key = "other_settings",
+                topIconButtonId = R.drawable.chevron_back,
+                onTopIconButtonClick = pop,
+                tabIndex = 0,
+                onTabChange = {},
+                tabColumnContent = {
+                    tab(0, R.string.other, R.drawable.settings, canHide = false)
+                }
             ) {
-                SliderDialogBody(
-                    provideState = {
-                        remember(AppearancePreferences.maxThumbnailSize) {
-                            mutableFloatStateOf(AppearancePreferences.maxThumbnailSize.toFloat())
+                SettingsCategoryScreen(
+                    title = stringResource(R.string.other),
+                    scrollState = scrollState,
+                    onBackClick = pop
+                ) {
+                    SettingsGroup(title = stringResource(R.string.android_auto)) {
+                        SwitchSettingsEntry(
+                            title = stringResource(R.string.android_auto),
+                            text = stringResource(R.string.android_auto_description),
+                            isChecked = isAndroidAutoEnabled,
+                            onCheckedChange = { isAndroidAutoEnabled = it }
+                        )
+
+                        AnimatedVisibility(visible = isAndroidAutoEnabled) {
+                            SettingsDescription(text = stringResource(R.string.android_auto_warning))
                         }
-                    },
-                    onSlideComplete = { AppearancePreferences.maxThumbnailSize = it.roundToInt() },
-                    min = 32f,
-                    max = 1920f,
-                    toDisplay = { stringResource(R.string.format_px, it.roundToInt()) },
-                    steps = 58
-                )
-            }
-        }
-        SettingsGroup(title = stringResource(R.string.service_lifetime)) {
-            AnimatedVisibility(visible = !isIgnoringBatteryOptimizations) {
-                SettingsDescription(
-                    text = stringResource(R.string.service_lifetime_warning),
-                    important = true
-                )
-            }
+                    }
+                    SettingsGroup(title = stringResource(R.string.search_history)) {
+                        SwitchSettingsEntry(
+                            title = stringResource(R.string.pause_search_history),
+                            text = stringResource(R.string.pause_search_history_description),
+                            isChecked = DataPreferences.pauseSearchHistory,
+                            onCheckedChange = { DataPreferences.pauseSearchHistory = it }
+                        )
 
-            if (isAtLeastAndroid12) SettingsDescription(
-                text = stringResource(R.string.service_lifetime_warning_android_12)
-            )
+                        AnimatedVisibility(visible = !(DataPreferences.pauseSearchHistory && queriesCount == 0)) {
+                            SettingsEntry(
+                                title = stringResource(R.string.clear_search_history),
+                                text = if (queriesCount > 0) stringResource(
+                                    R.string.format_clear_search_history_amount,
+                                    queriesCount
+                                )
+                                else stringResource(R.string.empty_history),
+                                onClick = { query(Database::clearQueries) },
+                                isEnabled = queriesCount > 0
+                            )
+                        }
+                    }
+                    SettingsGroup(title = stringResource(R.string.playlists)) {
+                        SwitchSettingsEntry(
+                            title = stringResource(R.string.auto_sync_playlists),
+                            text = stringResource(R.string.auto_sync_playlists_description),
+                            isChecked = DataPreferences.autoSyncPlaylists,
+                            onCheckedChange = { DataPreferences.autoSyncPlaylists = it }
+                        )
+                    }
+                    SettingsGroup(title = stringResource(R.string.built_in_playlists)) {
+                        IntSettingsEntry(
+                            title = stringResource(R.string.top_list_length),
+                            text = stringResource(R.string.top_list_length_description),
+                            currentValue = DataPreferences.topListLength,
+                            setValue = { DataPreferences.topListLength = it },
+                            defaultValue = 10,
+                            range = 1..500
+                        )
+                    }
+                    SettingsGroup(title = stringResource(R.string.quick_picks)) {
+                        EnumValueSelectorSettingsEntry(
+                            title = stringResource(R.string.quick_picks_source),
+                            selectedValue = DataPreferences.quickPicksSource,
+                            onValueSelect = { DataPreferences.quickPicksSource = it },
+                            valueText = { it.displayName() }
+                        )
 
-            val errorMsg = stringResource(R.string.no_battery_optimization_settings_found)
-            SettingsEntry(
-                title = stringResource(R.string.ignore_battery_optimizations),
-                text = if (isIgnoringBatteryOptimizations) stringResource(R.string.ignoring_battery_optimizations)
-                else stringResource(R.string.ignore_battery_optimizations_action),
-                onClick = {
-                    if (!isAtLeastAndroid6) return@SettingsEntry
+                        SwitchSettingsEntry(
+                            title = stringResource(R.string.quick_picks_cache),
+                            text = stringResource(R.string.quick_picks_cache_description),
+                            isChecked = DataPreferences.shouldCacheQuickPicks,
+                            onCheckedChange = { DataPreferences.shouldCacheQuickPicks = it }
+                        )
+                    }
+                    SettingsGroup(title = stringResource(R.string.dynamic_thumbnails)) {
+                        var selectingThumbnailSize by remember { mutableStateOf(false) }
+                        SettingsEntry(
+                            title = stringResource(R.string.max_dynamic_thumbnail_size),
+                            text = stringResource(R.string.max_dynamic_thumbnail_size_description),
+                            onClick = { selectingThumbnailSize = true }
+                        )
+                        if (selectingThumbnailSize) SliderDialog(
+                            onDismiss = { selectingThumbnailSize = false },
+                            title = stringResource(R.string.max_dynamic_thumbnail_size)
+                        ) {
+                            SliderDialogBody(
+                                provideState = {
+                                    remember(AppearancePreferences.maxThumbnailSize) {
+                                        mutableFloatStateOf(AppearancePreferences.maxThumbnailSize.toFloat())
+                                    }
+                                },
+                                onSlideComplete = { AppearancePreferences.maxThumbnailSize = it.roundToInt() },
+                                min = 32f,
+                                max = 1920f,
+                                toDisplay = { stringResource(R.string.format_px, it.roundToInt()) },
+                                steps = 58
+                            )
+                        }
+                    }
+                    SettingsGroup(title = stringResource(R.string.service_lifetime)) {
+                        AnimatedVisibility(visible = !isIgnoringBatteryOptimizations) {
+                            SettingsDescription(
+                                text = stringResource(R.string.service_lifetime_warning),
+                                important = true
+                            )
+                        }
 
-                    try {
-                        activityResultLauncher.launch(
-                            Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                data = "package:${context.packageName}".toUri()
+                        if (isAtLeastAndroid12) SettingsDescription(
+                            text = stringResource(R.string.service_lifetime_warning_android_12)
+                        )
+
+                        val errorMsg = stringResource(R.string.no_battery_optimization_settings_found)
+                        SettingsEntry(
+                            title = stringResource(R.string.ignore_battery_optimizations),
+                            text = if (isIgnoringBatteryOptimizations) stringResource(R.string.ignoring_battery_optimizations)
+                            else stringResource(R.string.ignore_battery_optimizations_action),
+                            onClick = {
+                                if (!isAtLeastAndroid6) return@SettingsEntry
+
+                                try {
+                                    activityResultLauncher.launch(
+                                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                            data = "package:${context.packageName}".toUri()
+                                        }
+                                    )
+                                } catch (_: ActivityNotFoundException) {
+                                    try {
+                                        activityResultLauncher.launch(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                    } catch (_: ActivityNotFoundException) {
+                                        context.toast(errorMsg)
+                                    }
+                                }
+                            },
+                            isEnabled = !isIgnoringBatteryOptimizations
+                        )
+
+                        AnimatedVisibility(!isAtLeastAndroid12 || isIgnoringBatteryOptimizations) {
+                            SwitchSettingsEntry(
+                                title = stringResource(R.string.invincible_service),
+                                text = stringResource(R.string.invincible_service_description),
+                                isChecked = PlayerPreferences.isInvincibilityEnabled,
+                                onCheckedChange = { PlayerPreferences.isInvincibilityEnabled = it }
+                            )
+                        }
+
+                        SettingsEntry(
+                            title = stringResource(R.string.need_help),
+                            text = stringResource(R.string.need_help_description),
+                            onClick = {
+                                uriHandler.openUri("https://dontkillmyapp.com/")
                             }
                         )
-                    } catch (_: ActivityNotFoundException) {
-                        try {
-                            activityResultLauncher.launch(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
-                        } catch (_: ActivityNotFoundException) {
-                            context.toast(errorMsg)
-                        }
+
+                        SettingsDescription(text = stringResource(R.string.service_lifetime_report_issue))
                     }
-                },
-                isEnabled = !isIgnoringBatteryOptimizations
-            )
 
-            AnimatedVisibility(!isAtLeastAndroid12 || isIgnoringBatteryOptimizations) {
-                SwitchSettingsEntry(
-                    title = stringResource(R.string.invincible_service),
-                    text = stringResource(R.string.invincible_service_description),
-                    isChecked = PlayerPreferences.isInvincibilityEnabled,
-                    onCheckedChange = { PlayerPreferences.isInvincibilityEnabled = it }
-                )
-            }
+                    var showTroubleshoot by rememberSaveable { mutableStateOf(false) }
 
-            SettingsEntry(
-                title = stringResource(R.string.need_help),
-                text = stringResource(R.string.need_help_description),
-                onClick = {
-                    uriHandler.openUri("https://dontkillmyapp.com/")
-                }
-            )
+                    AnimatedContent(showTroubleshoot, label = "") { show ->
+                        if (show) SettingsGroup(
+                            title = stringResource(R.string.troubleshooting),
+                            description = stringResource(R.string.troubleshooting_warning),
+                            important = true
+                        ) {
+                            val troubleshootScope = rememberCoroutineScope()
+                            var reloading by rememberSaveable { mutableStateOf(false) }
+                            var upgrading by rememberSaveable { mutableStateOf(false) }
 
-            SettingsDescription(text = stringResource(R.string.service_lifetime_report_issue))
-        }
+                            SecondaryTextButton(
+                                text = stringResource(R.string.upgrade_yt_dlp),
+                                onClick = {
+                                    upgrading = true
+                                    context.toast(R.string.please_wait)
+                                    val job = troubleshootScope.launch {
+                                        val success = runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                Dependencies.upgradeYoutubeDl()
+                                            }
+                                        }.also { it.exceptionOrNull()?.printStackTrace() }.getOrNull()
 
-        var showTroubleshoot by rememberSaveable { mutableStateOf(false) }
+                                        withContext(Dispatchers.Main) {
+                                            context.toast(
+                                                if (success == true) R.string.yt_dlp_success
+                                                else R.string.yt_dlp_fail
+                                            )
+                                        }
+                                    }
+                                    job.invokeOnCompletion { upgrading = false }
+                                },
+                                enabled = !reloading && !upgrading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp)
+                                    .padding(horizontal = 16.dp)
+                            )
 
-        AnimatedContent(showTroubleshoot, label = "") { show ->
-            if (show) SettingsGroup(
-                title = stringResource(R.string.troubleshooting),
-                description = stringResource(R.string.troubleshooting_warning),
-                important = true
-            ) {
-                val troubleshootScope = rememberCoroutineScope()
-                var reloading by rememberSaveable { mutableStateOf(false) }
-                var upgrading by rememberSaveable { mutableStateOf(false) }
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                SecondaryTextButton(
-                    text = stringResource(R.string.upgrade_yt_dlp),
-                    onClick = {
-                        upgrading = true
-                        context.toast(R.string.please_wait)
-                        val job = troubleshootScope.launch {
-                            val success = runCatching {
-                                withContext(Dispatchers.IO) {
-                                    Dependencies.upgradeYoutubeDl()
+                            SecondaryTextButton(
+                                text = stringResource(R.string.reload_app_internals),
+                                onClick = {
+                                    if (!reloading) troubleshootScope.launch {
+                                        reloading = true
+                                        with(context) {
+                                            stopService(intent<PrecacheService>())
+                                        }
+                                        binder?.restartForegroundOrStop()
+                                        DatabaseDependency.reload()
+                                        reloading = false
+                                    }
+                                },
+                                enabled = !reloading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp)
+                                    .padding(horizontal = 16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            SecondaryTextButton(
+                                text = stringResource(R.string.kill_app),
+                                onClick = {
+                                    binder?.stopRadio()
+                                    binder?.invincible = false
+                                    context.findActivity().finishAndRemoveTask()
+                                    binder?.restartForegroundOrStop()
+                                    troubleshootScope.launch {
+                                        delay(500L)
+                                        Handler(Looper.getMainLooper()).postAtFrontOfQueue { exitProcess(0) }
+                                    }
+                                },
+                                enabled = !reloading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp)
+                                    .padding(horizontal = 16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            SecondaryTextButton(
+                                text = stringResource(R.string.show_logs),
+                                onClick = {
+                                    logsRoute.global()
+                                },
+                                enabled = !reloading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp)
+                                    .padding(horizontal = 16.dp)
+                            )
+                        } else SecondaryTextButton(
+                            text = stringResource(R.string.show_troubleshoot_section),
+                            onClick = {
+                                coroutineScope.launch {
+                                    delay(500)
+                                    scrollState.smoothScrollToBottom()
                                 }
-                            }.also { it.exceptionOrNull()?.printStackTrace() }.getOrNull()
-
-                            withContext(Dispatchers.Main) {
-                                context.toast(
-                                    if (success == true) R.string.yt_dlp_success
-                                    else R.string.yt_dlp_fail
-                                )
-                            }
-                        }
-                        job.invokeOnCompletion { upgrading = false }
-                    },
-                    enabled = !reloading && !upgrading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp)
-                        .padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SecondaryTextButton(
-                    text = stringResource(R.string.reload_app_internals),
-                    onClick = {
-                        if (!reloading) troubleshootScope.launch {
-                            reloading = true
-                            with(context) {
-                                stopService(intent<PrecacheService>())
-                            }
-                            binder?.restartForegroundOrStop()
-                            DatabaseDependency.reload()
-                            reloading = false
-                        }
-                    },
-                    enabled = !reloading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp)
-                        .padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SecondaryTextButton(
-                    text = stringResource(R.string.kill_app),
-                    onClick = {
-                        binder?.stopRadio()
-                        binder?.invincible = false
-                        context.findActivity().finishAndRemoveTask()
-                        binder?.restartForegroundOrStop()
-                        troubleshootScope.launch {
-                            delay(500L)
-                            Handler(Looper.getMainLooper()).postAtFrontOfQueue { exitProcess(0) }
-                        }
-                    },
-                    enabled = !reloading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp)
-                        .padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SecondaryTextButton(
-                    text = stringResource(R.string.show_logs),
-                    onClick = {
-                        logsRoute.global()
-                    },
-                    enabled = !reloading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp)
-                        .padding(horizontal = 16.dp)
-                )
-            } else SecondaryTextButton(
-                text = stringResource(R.string.show_troubleshoot_section),
-                onClick = {
-                    coroutineScope.launch {
-                        delay(500)
-                        scrollState.smoothScrollToBottom()
+                                showTroubleshoot = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, bottom = 16.dp)
+                                .padding(horizontal = 16.dp)
+                        )
                     }
-                    showTroubleshoot = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, bottom = 16.dp)
-                    .padding(horizontal = 16.dp)
-            )
+                }
+            }
         }
     }
 }

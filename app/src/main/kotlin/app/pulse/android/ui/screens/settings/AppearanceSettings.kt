@@ -28,16 +28,38 @@ import app.pulse.core.ui.ThumbnailRoundness
 import app.pulse.core.ui.googleFontsAvailable
 import app.pulse.core.ui.utils.isAtLeastAndroid13
 import kotlinx.collections.immutable.toImmutableList
+import app.pulse.compose.routing.RouteHandler
+import app.pulse.android.ui.screens.GlobalRoutes
+import app.pulse.android.ui.components.themed.Scaffold
+
 
 @Route
 @Composable
-fun AppearanceSettings() = with(AppearancePreferences) {
-    val (colorPalette) = LocalAppearance.current
-    val context = LocalContext.current
-    val isDark = isSystemInDarkTheme()
+fun AppearanceSettings() {
+    with(AppearancePreferences) {
+        val (colorPalette) = LocalAppearance.current
+        val context = LocalContext.current
+        val isDark = isSystemInDarkTheme()
 
-    SettingsCategoryScreen(title = stringResource(R.string.appearance)) {
-        SettingsGroup(title = stringResource(R.string.colors)) {
+        RouteHandler {
+            GlobalRoutes()
+
+            Content {
+                Scaffold(
+                    key = "appearance_settings",
+                    topIconButtonId = R.drawable.chevron_back,
+                    onTopIconButtonClick = pop,
+                    tabIndex = 0,
+                    onTabChange = {},
+                    tabColumnContent = {
+                        tab(0, R.string.appearance, R.drawable.settings, canHide = false)
+                    }
+                ) {
+                    SettingsCategoryScreen(
+                        title = stringResource(R.string.appearance),
+                        onBackClick = pop
+                    ) {
+                        SettingsGroup(title = stringResource(R.string.colors)) {
             val systemDark = isSystemInDarkTheme()
             val isEffectiveDark = remember(colorMode, systemDark) {
                 colorMode == ColorMode.Dark || (colorMode == ColorMode.System && systemDark)
@@ -247,8 +269,11 @@ fun AppearanceSettings() = with(AppearancePreferences) {
             )
         }
     }
+    }
+    }
+    }
+    }
 }
-
 val ColorSource.nameLocalized
     @Composable get() = stringResource(
         when (this) {

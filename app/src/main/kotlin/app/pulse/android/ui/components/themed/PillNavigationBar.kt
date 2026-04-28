@@ -36,6 +36,7 @@ fun PillNavigationBar(
     tabs: ImmutableList<Tab>,
     tabIndex: Int,
     onTabChange: (Int) -> Unit,
+    onSettingsClick: () -> Unit,
     hiddenTabs: ImmutableList<String>,
     modifier: Modifier = Modifier
 ) {
@@ -118,6 +119,10 @@ fun PillNavigationBar(
                         onClick = { onTabChange(originalIndex) }
                     )
                 }
+
+                item {
+                    SettingsNavigationItem(onClick = onSettingsClick)
+                }
             }
         }
     }
@@ -151,6 +156,28 @@ private fun PillNavigationItem(
             painter = painterResource(tab.icon),
             contentDescription = null,
             colorFilter = ColorFilter.tint(iconColor),
+            modifier = Modifier.size(22.dp)
+        )
+    }
+}
+
+@Composable
+private fun SettingsNavigationItem(
+    onClick: () -> Unit
+) {
+    val (colorPalette) = LocalAppearance.current
+    Box(
+        modifier = Modifier
+            .size(Dimensions.items.collapsedPlayerHeight - 8.dp)
+            .clip(CircleShape)
+            .background(colorPalette.background1)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.settings),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(colorPalette.textSecondary),
             modifier = Modifier.size(22.dp)
         )
     }
