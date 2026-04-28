@@ -91,6 +91,8 @@ import app.pulse.android.ui.components.BottomSheetMenu
 import app.pulse.android.ui.components.BottomSheetState
 import app.pulse.android.ui.components.rememberBottomSheetState
 import app.pulse.android.ui.components.themed.LinearProgressIndicator
+import app.pulse.android.ui.components.themed.LocalNavigationState
+import app.pulse.core.ui.utils.isLandscape
 import app.pulse.android.ui.screens.albumRoute
 import app.pulse.android.ui.screens.artistRoute
 import app.pulse.android.ui.screens.home.HomeScreen
@@ -106,6 +108,7 @@ import app.pulse.android.utils.asMediaItem
 import app.pulse.android.utils.collectProvidedBitmapAsState
 import app.pulse.android.utils.forcePlay
 import app.pulse.android.utils.intent
+import kotlinx.collections.immutable.persistentListOf
 import app.pulse.android.utils.invokeOnReady
 import app.pulse.android.utils.isInPip
 import app.pulse.android.utils.maybeEnterPip
@@ -524,45 +527,51 @@ private fun FloatingDock(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    val navigationState = LocalNavigationState.current
+    val isLandscape = isLandscape
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .padding(horizontal = 24.dp, vertical = 24.dp)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            .fillMaxWidth()
     ) {
-        app.pulse.android.ui.components.FloatingMiniPlayer(
-            onClick = onPlayerClick,
-            modifier = Modifier.weight(1f)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            app.pulse.android.ui.components.FloatingMiniPlayer(
+                onClick = onPlayerClick,
+                modifier = Modifier.weight(1f)
+            )
 
-        FloatingSearchButton(
-            onClick = onSearchClick
-        )
-    }
-}
+            if (isLandscape || navigationState == null) {
+                app.pulse.android.ui.components.themed.FloatingSearchButton(
+                    onClick = onSearchClick
+                )
+            }
+        }
 
-@Composable
-private fun FloatingSearchButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val (colorPalette) = LocalAppearance.current
-    Box(
-        modifier = modifier
-            .size(Dimensions.items.collapsedPlayerHeight)
-            .shadow(elevation = 12.dp, shape = CircleShape)
-            .background(colorPalette.background1, CircleShape)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(R.drawable.search),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.text),
-            modifier = Modifier.size(24.dp)
-        )
+        if (!isLandscape && navigationState != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                app.pulse.android.ui.components.themed.PillNavigationBar(
+                    tabs = navigationState.value?.tabs ?: persistentListOf(),
+                    tabIndex = navigationState.value?.tabIndex ?: 0,
+                    onTabChange = navigationState.value?.onTabChange ?: {},
+                    hiddenTabs = navigationState.value?.hiddenTabs ?: persistentListOf(),
+                    modifier = Modifier.weight(1f)
+                )
+
+                app.pulse.android.ui.components.themed.FloatingSearchButton(
+                    onClick = onSearchClick
+                )
+            }
+        }
     }
 }
 
