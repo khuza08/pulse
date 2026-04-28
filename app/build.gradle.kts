@@ -58,6 +58,13 @@ android {
             keyAlias = System.getenv("ANDROID_NIGHTLY_KEYSTORE_ALIAS")
             keyPassword = System.getenv("ANDROID_NIGHTLY_KEYSTORE_PASSWORD")
         }
+
+        create("release") {
+            storeFile = System.getenv("ANDROID_RELEASE_KEYSTORE")?.let { file(it) }
+            storePassword = System.getenv("ANDROID_RELEASE_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("ANDROID_RELEASE_KEYSTORE_ALIAS")
+            keyPassword = System.getenv("ANDROID_RELEASE_KEYSTORE_PASSWORD")
+        }
     }
 
     buildTypes {
@@ -74,6 +81,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.findByName("release")
         }
 
         create("nightly") {
