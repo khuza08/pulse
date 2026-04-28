@@ -165,6 +165,7 @@ private val coroutineScope = CoroutineScope(Dispatchers.IO)
 // Viewmodel in order to avoid recreating the entire Player state (WORKAROUND)
 class MainViewModel : ViewModel() {
     var binder: PlayerService.Binder? by mutableStateOf(null)
+    var isReady by mutableStateOf(false)
 
     suspend fun awaitBinder(): PlayerService.Binder =
         binder ?: snapshotFlow { binder }.filterNotNull().first()
@@ -195,7 +196,7 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        setupSplashScreen()
         super.onCreate(savedInstanceState)
 
         initializeSystemUI()
@@ -203,6 +204,10 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
 
         intent?.let { handleIntent(it) }
         addOnNewIntentListener(::handleIntent)
+    }
+
+    private fun setupSplashScreen() {
+        installSplashScreen().setKeepOnScreenCondition { !vm.isReady }
     }
 
     private fun initializeSystemUI() {
@@ -280,6 +285,10 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     @Suppress("CyclomaticComplexMethod")
     @OptIn(ExperimentalLayoutApi::class)
     fun setContent() = setContent {
+        LaunchedEffect(Unit) {
+            vm.isReady = true
+        }
+
         val windowInsets = WindowInsets.systemBars
 
         AppWrapper(
