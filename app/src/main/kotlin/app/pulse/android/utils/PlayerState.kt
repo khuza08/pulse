@@ -157,6 +157,21 @@ fun playingSong(
 }
 
 @Composable
+fun Player?.rememberIsBuffering(): Boolean {
+    var isBuffering by remember(this) { mutableStateOf(this?.isBuffering == true) }
+
+    DisposableListener {
+        object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                isBuffering = player.isBuffering
+            }
+        }
+    }
+
+    return isBuffering
+}
+
+@Composable
 fun rememberEqualizerLauncher(
     audioSessionId: () -> Int?,
     contentType: Int = AudioEffect.CONTENT_TYPE_MUSIC

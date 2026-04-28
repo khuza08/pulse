@@ -29,29 +29,40 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.airbnb.lottie.compose.rememberLottieDynamicProperties
 import com.airbnb.lottie.compose.rememberLottieDynamicProperty
 
+import app.pulse.android.ui.components.themed.CircularProgressIndicator
+
 @Composable
 fun AnimatedPlayPauseButton(
     playing: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    buffering: Boolean = false,
+    tint: Color = LocalAppearance.current.colorPalette.text
 ) {
     val (colorPalette) = LocalAppearance.current
 
-    val result = rememberLottieComposition(
-        spec = LottieCompositionSpec.Asset("lottie/play_pause.json")
-    )
-    val comp by result
-    val progress by comp.animateLottieProgressAsState(
-        targetState = playing,
-        speed = 2f
-    )
+    if (buffering && playing) {
+        CircularProgressIndicator(
+            modifier = modifier,
+            color = tint
+        )
+    } else {
+        val result = rememberLottieComposition(
+            spec = LottieCompositionSpec.Asset("lottie/play_pause.json")
+        )
+        val comp by result
+        val progress by comp.animateLottieProgressAsState(
+            targetState = playing,
+            speed = 2f
+        )
 
-    LottieAnimationWithPlaceholder(
-        lottieCompositionResult = result,
-        progress = progress,
-        tint = colorPalette.text,
-        placeholder = if (playing) R.drawable.play else R.drawable.pause,
-        modifier = modifier
-    )
+        LottieAnimationWithPlaceholder(
+            lottieCompositionResult = result,
+            progress = progress,
+            tint = colorPalette.text,
+            placeholder = if (playing) R.drawable.play else R.drawable.pause,
+            modifier = modifier
+        )
+    }
 }
 
 @Composable

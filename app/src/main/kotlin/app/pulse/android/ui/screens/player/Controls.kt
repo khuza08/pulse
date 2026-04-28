@@ -65,6 +65,7 @@ import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
+import app.pulse.android.utils.rememberIsBuffering
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.favoritesIcon
 import app.pulse.core.ui.utils.px
@@ -83,7 +84,8 @@ fun Controls(
     shouldBePlaying: Boolean,
     position: Long,
     modifier: Modifier = Modifier,
-    layout: PlayerPreferences.PlayerLayout = PlayerPreferences.playerLayout
+    layout: PlayerPreferences.PlayerLayout = PlayerPreferences.playerLayout,
+    isBuffering: Boolean = binder?.player?.rememberIsBuffering() ?: false
 ) {
     val shouldBePlayingTransition = updateTransition(
         targetState = shouldBePlaying,
@@ -105,7 +107,8 @@ fun Controls(
             likedAt = likedAt,
             setLikedAt = setLikedAt,
             playButtonRadius = playButtonRadius,
-            modifier = modifier
+            modifier = modifier,
+            isBuffering = isBuffering
         )
 
         PlayerPreferences.PlayerLayout.New -> ModernControls(
@@ -116,7 +119,8 @@ fun Controls(
             likedAt = likedAt,
             setLikedAt = setLikedAt,
             playButtonRadius = playButtonRadius,
-            modifier = modifier
+            modifier = modifier,
+            isBuffering = isBuffering
         )
     }
 }
@@ -130,7 +134,8 @@ private fun ClassicControls(
     likedAt: Long?,
     setLikedAt: (Long?) -> Unit,
     playButtonRadius: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isBuffering: Boolean = false
 ) = with(PlayerPreferences) {
     val (colorPalette) = LocalAppearance.current
 
@@ -194,7 +199,9 @@ private fun ClassicControls(
                     playing = shouldBePlaying,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(32.dp)
+                        .size(32.dp),
+                    buffering = isBuffering,
+                    tint = colorPalette.background0
                 )
             }
 
@@ -233,7 +240,8 @@ private fun ModernControls(
     setLikedAt: (Long?) -> Unit,
     playButtonRadius: Dp,
     modifier: Modifier = Modifier,
-    controlHeight: Dp = 64.dp
+    controlHeight: Dp = 64.dp,
+    isBuffering: Boolean = false
 ) {
     val previousButtonContent: @Composable RowScope.() -> Unit = {
         SkipButton(
@@ -275,7 +283,8 @@ private fun ModernControls(
                 shouldBePlaying = shouldBePlaying,
                 modifier = Modifier
                     .height(controlHeight)
-                    .weight(if (PlayerPreferences.showLike) 3f else 4f)
+                    .weight(if (PlayerPreferences.showLike) 3f else 4f),
+                isBuffering = isBuffering
             )
             SkipButton(
                 iconId = R.drawable.play_skip_forward,
@@ -336,7 +345,8 @@ private fun SkipButton(
 private fun PlayButton(
     radius: Dp,
     shouldBePlaying: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isBuffering: Boolean = false
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
@@ -356,7 +366,9 @@ private fun PlayButton(
             playing = shouldBePlaying,
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(32.dp)
+                .size(32.dp),
+            buffering = isBuffering,
+            tint = colorPalette.background0
         )
     }
 }

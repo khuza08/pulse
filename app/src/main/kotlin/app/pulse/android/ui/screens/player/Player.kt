@@ -91,6 +91,7 @@ import app.pulse.android.utils.rememberPipHandler
 import app.pulse.android.utils.seamlessPlay
 import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
+import app.pulse.android.utils.rememberIsBuffering
 import app.pulse.android.utils.shouldBePlaying
 import app.pulse.android.utils.thumbnail
 import app.pulse.compose.persist.PersistMapCleanup
@@ -133,6 +134,7 @@ fun Player(
         )
     }
     var shouldBePlaying by remember(binder) { mutableStateOf(binder?.player?.shouldBePlaying == true) }
+    val isBuffering = binder?.player.rememberIsBuffering()
 
     var historyMediaItem by remember { mutableStateOf<MediaItem?>(null) }
     LaunchedEffect(binder, mediaItem) {
@@ -280,7 +282,8 @@ fun Player(
                 setLikedAt = { likedAt = it },
                 shouldBePlaying = shouldBePlaying,
                 position = position,
-                modifier = innerModifier
+                modifier = innerModifier,
+                isBuffering = isBuffering
             )
         }
 

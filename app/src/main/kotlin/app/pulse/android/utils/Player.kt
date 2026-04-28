@@ -21,6 +21,9 @@ inline val Timeline.mediaItems: List<MediaItem>
 val Player.shouldBePlaying: Boolean
     get() = !(playbackState == Player.STATE_ENDED || !playWhenReady)
 
+val Player.isBuffering: Boolean
+    get() = playbackState == Player.STATE_BUFFERING
+
 fun Player.removeMediaItems(range: IntRange) = removeMediaItems(range.first, range.last + 1)
 
 fun Player.safeClearQueue() {

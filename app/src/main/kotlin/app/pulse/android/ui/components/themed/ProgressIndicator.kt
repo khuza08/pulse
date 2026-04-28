@@ -7,6 +7,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import app.pulse.core.ui.LocalAppearance
 
@@ -15,13 +16,14 @@ fun CircularProgressIndicator(
     modifier: Modifier = Modifier,
     progress: Float? = null,
     animateProgress: Boolean = progress != null,
-    strokeCap: StrokeCap? = null
+    strokeCap: StrokeCap? = null,
+    color: Color = LocalAppearance.current.colorPalette.accent
 ) {
     val (colorPalette) = LocalAppearance.current
 
     if (progress == null) androidx.compose.material3.CircularProgressIndicator(
         modifier = modifier,
-        color = colorPalette.accent,
+        color = color,
         strokeCap = strokeCap ?: ProgressIndicatorDefaults.CircularIndeterminateStrokeCap
     ) else {
         val animatedProgress by (
@@ -31,7 +33,7 @@ fun CircularProgressIndicator(
 
         androidx.compose.material3.CircularProgressIndicator(
             modifier = modifier,
-            color = colorPalette.accent,
+            color = color,
             strokeCap = strokeCap ?: ProgressIndicatorDefaults.CircularDeterminateStrokeCap,
             progress = { animatedProgress }
         )
@@ -43,13 +45,14 @@ fun LinearProgressIndicator(
     modifier: Modifier = Modifier,
     progress: Float? = null,
     animateProgress: Boolean = progress != null,
-    strokeCap: StrokeCap = ProgressIndicatorDefaults.LinearStrokeCap
+    strokeCap: StrokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+    color: Color = LocalAppearance.current.colorPalette.accent
 ) {
     val (colorPalette) = LocalAppearance.current
 
     if (progress == null) androidx.compose.material3.LinearProgressIndicator(
         modifier = modifier,
-        color = colorPalette.accent,
+        color = color,
         trackColor = colorPalette.background1,
         strokeCap = strokeCap
     ) else {
@@ -60,7 +63,7 @@ fun LinearProgressIndicator(
 
         androidx.compose.material3.LinearProgressIndicator(
             modifier = modifier,
-            color = colorPalette.accent,
+            color = color,
             trackColor = colorPalette.background1,
             strokeCap = strokeCap,
             progress = { animatedProgress }

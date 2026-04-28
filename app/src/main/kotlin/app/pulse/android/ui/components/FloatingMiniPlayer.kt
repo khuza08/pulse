@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
@@ -43,14 +42,12 @@ import app.pulse.android.Database
 import app.pulse.android.LocalPlayerServiceBinder
 import app.pulse.android.R
 import app.pulse.android.models.ui.toUiMedia
-import app.pulse.core.ui.collapsedPlayerProgressBar
+import app.pulse.android.ui.components.themed.CircularProgressIndicator
 import app.pulse.core.ui.utils.px
-import app.pulse.android.ui.components.themed.IconButton
 import app.pulse.android.utils.DisposableListener
 import app.pulse.android.utils.asMediaItem
-import app.pulse.android.utils.forcePlay
-import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.positionAndDurationState
+import app.pulse.android.utils.rememberIsBuffering
 import app.pulse.android.utils.seamlessPlay
 import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
@@ -59,7 +56,6 @@ import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
 import coil3.compose.AsyncImage
-import kotlin.math.absoluteValue
 
 @Composable
 fun FloatingMiniPlayer(
@@ -76,6 +72,7 @@ fun FloatingMiniPlayer(
         )
     }
     var shouldBePlaying by remember(binder) { mutableStateOf(binder?.player?.shouldBePlaying == true) }
+    val isBuffering = binder?.player?.rememberIsBuffering() ?: false
 
     var historyMediaItem by remember { mutableStateOf<MediaItem?>(null) }
     LaunchedEffect(binder, mediaItem) {
@@ -166,10 +163,10 @@ fun FloatingMiniPlayer(
             if (activeMediaItem != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedContent(
-                        targetState = shouldBePlaying,
+                        targetState = shouldBePlaying to isBuffering,
                         transitionSpec = { fadeIn() togetherWith fadeOut() },
                         label = ""
-                    ) { isPlaying ->
+                    ) { (isPlaying, buffering) ->
                         Box(
                             modifier = Modifier
                                 .padding(all = 8.dp)
@@ -185,12 +182,18 @@ fun FloatingMiniPlayer(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            androidx.compose.foundation.Image(
-                                painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                                contentDescription = null,
-                                colorFilter = ColorFilter.tint(colorPalette.text),
-                                modifier = Modifier.size(20.dp)
-                            )
+                            if (buffering && isPlaying) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            } else {
+                                androidx.compose.foundation.Image(
+                                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint(colorPalette.text),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
                 }
