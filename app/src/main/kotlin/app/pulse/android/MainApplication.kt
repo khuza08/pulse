@@ -154,6 +154,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -610,6 +611,8 @@ val LocalPlayerAwareWindowInsets =
 val LocalCredentialManager = staticCompositionLocalOf { Dependencies.credentialManager }
 
 class MainApplication : Application(), SingletonImageLoader.Factory, Configuration.Provider {
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     override fun onCreate() {
         StrictMode.setVmPolicy(
             VmPolicy.Builder()
@@ -626,8 +629,10 @@ class MainApplication : Application(), SingletonImageLoader.Factory, Configurati
         MonetCompat.debugLog = BuildConfig.DEBUG
         super.onCreate()
 
-        MonetCompat.enablePaletteCompat()
-        ServiceNotifications.createAll()
+        applicationScope.launch {
+            MonetCompat.enablePaletteCompat()
+            with(ServiceNotifications) { createAll() }
+        }
     }
 
     override fun newImageLoader(context: PlatformContext) = ImageLoader.Builder(this)

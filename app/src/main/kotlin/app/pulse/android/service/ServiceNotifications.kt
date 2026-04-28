@@ -105,7 +105,7 @@ abstract class NotificationChannels {
     }
 
     context(application: Application)
-    fun createAll() = handler.post {
+    fun createAll() {
         mutableChannels.forEach { it.upsertChannel(application) }
     }
 

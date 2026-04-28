@@ -50,6 +50,7 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
--dontwarn org.slf4j.impl.StaticLoggerBinder
-
--keep class ch.qos.logback.classic.android.** { *; }
+-keep class ch.qos.logback.** { *; }
+-keep class org.slf4j.** { *; }
+-dontwarn ch.qos.logback.**
+-dontwarn org.slf4j.**
