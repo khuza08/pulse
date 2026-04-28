@@ -27,3 +27,8 @@ def upgrade(package_name):
     except Exception as e:
         print(f"Error upgrading package {package_name}: {e}")
 
+
+def warm_up():
+    import yt_dlp
+    import json
+    print("Python Music Engine: Warmed up and ready.")

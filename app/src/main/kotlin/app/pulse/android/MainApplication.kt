@@ -152,6 +152,8 @@ import com.valentinilk.shimmer.LocalShimmerTheme
 import dev.kdrag0n.monet.theme.ColorScheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.SupervisorJob
@@ -169,6 +171,14 @@ class MainViewModel : ViewModel() {
 
     suspend fun awaitBinder(): PlayerService.Binder =
         binder ?: snapshotFlow { binder }.filterNotNull().first()
+
+    fun warmUpEngine(scope: CoroutineScope) {
+        scope.launch {
+            snapshotFlow { isReady }.first { it }
+            delay(1000)
+            Dependencies.warmUp()
+        }
+    }
 }
 
 class MainActivity : ComponentActivity(), MonetColorsChangedListener {
@@ -198,6 +208,8 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         setupSplashScreen()
         super.onCreate(savedInstanceState)
+
+        vm.warmUpEngine(coroutineScope)
 
         initializeSystemUI()
         initializeThemeEngine()
@@ -687,6 +699,15 @@ object Dependencies {
     fun runDownload(id: String): String = module
         .callAttr("download", quickjsPath.absolutePath, id)
         .toString()
+
+    fun warmUp() {
+        runCatching {
+            module.callAttr("warm_up")
+            Log.d("MusicEngine", "Music Engine Warmed up successfully")
+        }.onFailure {
+            Log.e("MusicEngine", "Failed to warm up music engine", it)
+        }
+    }
 
     fun upgradeYoutubeDl(packageName: String = "yt-dlp"): Boolean {
         val success = runCatching { module.callAttr("upgrade", packageName) }

@@ -157,7 +157,7 @@ fun String?.thumbnail(
     }
 }
 
-fun Uri?.thumbnail(size: Int) = toString().thumbnail(size)?.toUri()
+fun Uri?.thumbnail(size: Int) = this?.toString()?.thumbnail(size)?.toUri()
 
 fun formatAsDuration(millis: Long) = DateUtils.formatElapsedTime(millis / 1000).removePrefix("0")
 
