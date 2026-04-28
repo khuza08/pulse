@@ -1,0 +1,118 @@
+name: Stable Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          allow-prereleases: true
+
+      - name: Decode Release Keystore
+        run: |
+          echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > app/release.jks
+
+      - name: Extract App Version & Changelog
+        id: vars
+        run: |
+          # 1. Extract Version
+          VERSION=$(grep "version =" build.gradle.kts | head -n 1 | sed -E 's/.*version = "(.*)".*/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # 2. Fetch tags and identify previous release
+          git fetch --tags --force
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMIT_RANGE="--max-count=20"
+            HAS_MORE=false
+          else
+            COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+            TOTAL_COMMITS=$(git rev-list --count $COMMIT_RANGE)
+            if [ $TOTAL_COMMITS -gt 20 ]; then HAS_MORE=true; else HAS_MORE=false; fi
+          fi
+
+          # 3. Generate Full Changelog (for GitHub)
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "full_changelog<<$EOF" >> $GITHUB_OUTPUT
+          git log $COMMIT_RANGE --pretty=format:"- %s" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+          # 4. Generate Truncated Changelog (for Telegram)
+          echo "truncated_changelog<<$EOF" >> $GITHUB_OUTPUT
+          git log $COMMIT_RANGE -n 20 --pretty=format:"- %s" >> $GITHUB_OUTPUT
+          if [ "$HAS_MORE" = "true" ]; then
+            echo -e "\n\n... and more! See the full changelog at:" >> $GITHUB_OUTPUT
+            echo "https://github.com/${{ github.repository }}/releases/tag/v$VERSION" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+        env:
+          ANDROID_RELEASE_KEYSTORE: release.jks
+          ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          ANDROID_RELEASE_KEYSTORE_ALIAS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_ALIAS }}
+
+      - name: Rename APK for Distribution
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          mv "$APK_PATH" "app/build/outputs/apk/release/pulse-stable-v${{ env.VERSION }}.apk"
+          echo "APK_FINAL_PATH=app/build/outputs/apk/release/pulse-stable-v${{ env.VERSION }}.apk" >> $GITHUB_ENV
+
+      - name: Upload to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            Pulse: New Stable Release v${{ env.VERSION }}
+            
+            Branch: ${{ github.ref_name }}
+            
+            Changelog:
+            ${{ steps.vars.outputs.truncated_changelog }}
+          document: "${{ env.APK_FINAL_PATH }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Stable v${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.APK_FINAL_PATH }}
+          body: |
+            Official Stable Release of Pulse v${{ env.VERSION }}.
+            
+            Build distributed via GitHub Actions.
+            
+            Changelog:
+            ${{ steps.vars.outputs.full_changelog }}

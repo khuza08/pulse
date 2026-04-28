@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to see tags and commit history
 
       - name: Check for recent commits
         id: check_commits
@@ -27,13 +29,26 @@ jobs:
             echo "New commits found (or manual trigger). Running build."
             echo "run_build=true" >> $GITHUB_OUTPUT
             
-            # Extract all commit messages in the last 24 hours (multi-line output)
+            # 1. Fetch tags and identify previous release
+            git fetch --tags --force
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            
+            if [ -z "$PREVIOUS_TAG" ]; then
+              COMMIT_RANGE="--max-count=20"
+              HAS_MORE=false
+            else
+              COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+              TOTAL_COMMITS=$(git rev-list --count $COMMIT_RANGE)
+              if [ $TOTAL_COMMITS -gt 20 ]; then HAS_MORE=true; else HAS_MORE=false; fi
+            fi
+
+            # 2. Generate Truncated Changelog (for Telegram)
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
             echo "commit_msg<<$EOF" >> $GITHUB_OUTPUT
-            if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-              git log -1 --pretty=format:"- %s" >> $GITHUB_OUTPUT
-            else
-              git log --since="24 hours ago" --pretty=format:"- %s" >> $GITHUB_OUTPUT
+            git log $COMMIT_RANGE -n 20 --pretty=format:"- %s" >> $GITHUB_OUTPUT
+            if [ "$HAS_MORE" = "true" ]; then
+              echo -e "\n\n... and more! See full history at:" >> $GITHUB_OUTPUT
+              echo "https://github.com/${{ github.repository }}/commits/${{ github.ref_name }}" >> $GITHUB_OUTPUT
             fi
             echo "" >> $GITHUB_OUTPUT
             echo "$EOF" >> $GITHUB_OUTPUT
