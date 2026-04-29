@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +38,7 @@ import app.pulse.android.ui.components.themed.Header
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import app.pulse.android.ui.components.themed.Scaffold
+import app.pulse.android.LocalPlayerAwareWindowInsets
 import app.pulse.android.ui.screens.GlobalRoutes
 import app.pulse.android.ui.screens.Route
 import app.pulse.android.ui.screens.aboutSettingsRoute
@@ -164,6 +168,11 @@ fun MasterSettingsCategoryScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .padding(
+                LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
+                    .asPaddingValues()
+            )
             .padding(horizontal = 16.dp)
             .padding(bottom = 80.dp)
     ) {
