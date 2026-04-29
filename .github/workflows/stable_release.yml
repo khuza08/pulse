@@ -38,15 +38,13 @@ jobs:
       - name: Extract App Version & Changelog
         id: vars
         run: |
-          # 1. Extract Version
           VERSION=$(grep "version =" build.gradle.kts | head -n 1 | sed -E 's/.*version = "(.*)".*/\1/')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-          # 2. Fetch tags and identify previous release
+
           git fetch --tags --force
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -z "$PREVIOUS_TAG" ]; then
             COMMIT_RANGE="--max-count=20"
             HAS_MORE=false
@@ -56,14 +54,12 @@ jobs:
             if [ $TOTAL_COMMITS -gt 20 ]; then HAS_MORE=true; else HAS_MORE=false; fi
           fi
 
-          # 3. Generate Full Changelog (for GitHub)
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "full_changelog<<$EOF" >> $GITHUB_OUTPUT
           git log $COMMIT_RANGE --pretty=format:"- %s" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
 
-          # 4. Generate Truncated Changelog (for Telegram)
           echo "truncated_changelog<<$EOF" >> $GITHUB_OUTPUT
           git log $COMMIT_RANGE -n 20 --pretty=format:"- %s" >> $GITHUB_OUTPUT
           if [ "$HAS_MORE" = "true" ]; then
@@ -93,9 +89,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             Pulse: New Stable Release v${{ env.VERSION }}
-            
+
             Branch: ${{ github.ref_name }}
-            
+
             Changelog:
             ${{ steps.vars.outputs.truncated_changelog }}
           document: "${{ env.APK_FINAL_PATH }}"
@@ -111,8 +107,14 @@ jobs:
             ${{ env.APK_FINAL_PATH }}
           body: |
             Official Stable Release of Pulse v${{ env.VERSION }}.
-            
-            Build distributed via GitHub Actions.
-            
+
             Changelog:
             ${{ steps.vars.outputs.full_changelog }}
+
+      - name: Sync Nightly Tag
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f nightly-latest
+          git push origin nightly-latest -f

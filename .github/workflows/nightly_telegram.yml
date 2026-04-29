@@ -8,12 +8,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required to see tags and commit history
+          fetch-depth: 0
 
       - name: Check for recent commits
         id: check_commits
@@ -21,18 +23,24 @@ jobs:
           COMMIT_TIME=$(git log -1 --format=%ct)
           CURRENT_TIME=$(date +%s)
           DIFF_HOURS=$(( (CURRENT_TIME - COMMIT_TIME) / 3600 ))
-          
+
           if [ $DIFF_HOURS -ge 24 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
             echo "No commits in the last 24 hours. Skipping nightly build."
             echo "run_build=false" >> $GITHUB_OUTPUT
           else
             echo "New commits found (or manual trigger). Running build."
             echo "run_build=true" >> $GITHUB_OUTPUT
-            
-            # 1. Fetch tags and identify previous release
+
+            # Fetch tags to ensure we see the floating tag
             git fetch --tags --force
-            PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            
+
+            # Look for nightly-latest first, then fallback to last stable tag
+            if git rev-parse nightly-latest >/dev/null 2>&1; then
+              PREVIOUS_TAG="nightly-latest"
+            else
+              PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            fi
+
             if [ -z "$PREVIOUS_TAG" ]; then
               COMMIT_RANGE="--max-count=20"
               HAS_MORE=false
@@ -42,7 +50,6 @@ jobs:
               if [ $TOTAL_COMMITS -gt 20 ]; then HAS_MORE=true; else HAS_MORE=false; fi
             fi
 
-            # 2. Generate Truncated Changelog (for Telegram)
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
             echo "commit_msg<<$EOF" >> $GITHUB_OUTPUT
             git log $COMMIT_RANGE -n 20 --pretty=format:"- %s" >> $GITHUB_OUTPUT
@@ -105,3 +112,11 @@ jobs:
             Commit: ${{ github.sha }}
             Message: ${{ steps.check_commits.outputs.commit_msg }}
           document: "app/build/outputs/apk/nightly/*.apk"
+
+      - name: Update Nightly Tag
+        if: steps.check_commits.outputs.run_build == 'true' && success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f nightly-latest
+          git push origin nightly-latest -f
