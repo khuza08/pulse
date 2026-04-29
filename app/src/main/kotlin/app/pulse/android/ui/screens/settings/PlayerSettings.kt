@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -40,6 +42,11 @@ fun PlayerSettings() {
         var changed by rememberSaveable { mutableStateOf(false) }
 
         RouteHandler {
+            val dockHiddenCount = LocalDockHiddenCount.current
+            DisposableEffect(Unit) {
+                dockHiddenCount.value++
+                onDispose { dockHiddenCount.value-- }
+            }
             GlobalRoutes()
 
             Content {

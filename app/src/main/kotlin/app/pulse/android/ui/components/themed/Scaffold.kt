@@ -39,6 +39,10 @@ data class NavigationState(
 val LocalNavigationState = staticCompositionLocalOf<MutableState<NavigationState?>> {
     mutableStateOf(null)
 }
+
+val LocalDockHiddenCount = staticCompositionLocalOf<MutableState<Int>> {
+    mutableStateOf(0)
+}
 @Composable
 fun Scaffold(
     key: String,
@@ -58,6 +62,7 @@ fun Scaffold(
     val globalNavigationState = LocalNavigationState.current
 
     DisposableEffect(tabs, tabIndex, onTabChange, hiddenTabs) {
+        val previousState = globalNavigationState.value
         globalNavigationState.value = NavigationState(
             tabs = tabs,
             tabIndex = tabIndex,
@@ -65,7 +70,7 @@ fun Scaffold(
             hiddenTabs = hiddenTabs
         )
         onDispose {
-            globalNavigationState.value = null
+            globalNavigationState.value = previousState
         }
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import app.pulse.android.R
 import app.pulse.android.ui.components.themed.Header
 import app.pulse.android.ui.components.themed.HeaderIconButton
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import app.pulse.android.ui.components.themed.Scaffold
 import app.pulse.android.ui.screens.GlobalRoutes
 import app.pulse.android.ui.screens.Route
@@ -48,12 +50,19 @@ import app.pulse.android.utils.secondary
 import app.pulse.android.utils.semiBold
 import app.pulse.compose.routing.RouteHandler
 import app.pulse.core.ui.LocalAppearance
+import androidx.compose.runtime.DisposableEffect
 
 @Route
 @Composable
 fun SettingsScreen() {
     RouteHandler {
         GlobalRoutes()
+
+        val dockHiddenCount = LocalDockHiddenCount.current
+        DisposableEffect(Unit) {
+            dockHiddenCount.value++
+            onDispose { dockHiddenCount.value-- }
+        }
 
         Content {
             Scaffold(
@@ -66,7 +75,10 @@ fun SettingsScreen() {
                     tab(0, R.string.settings, R.drawable.settings, canHide = false)
                 }
             ) {
-                MasterSettingsCategoryScreen(title = stringResource(R.string.settings)) {
+                MasterSettingsCategoryScreen(
+                    title = stringResource(R.string.settings),
+                    onBackClick = pop
+                ) {
                     MasterSettingsGroup(title = stringResource(R.string.appearance)) {
                         SettingsMenuEntry(
                             title = stringResource(R.string.appearance),

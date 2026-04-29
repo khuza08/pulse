@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -40,6 +42,11 @@ fun CacheSettings() {
         val imageCache = remember(context) { context.imageLoader.diskCache }
 
         RouteHandler {
+            val dockHiddenCount = LocalDockHiddenCount.current
+            DisposableEffect(Unit) {
+                dockHiddenCount.value++
+                onDispose { dockHiddenCount.value-- }
+            }
             GlobalRoutes()
 
             Content {

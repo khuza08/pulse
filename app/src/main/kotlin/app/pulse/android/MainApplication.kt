@@ -18,6 +18,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -92,6 +96,7 @@ import app.pulse.android.ui.components.BottomSheetMenu
 import app.pulse.android.ui.components.BottomSheetState
 import app.pulse.android.ui.components.rememberBottomSheetState
 import app.pulse.android.ui.components.themed.LinearProgressIndicator
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import app.pulse.android.ui.components.themed.LocalNavigationState
 import app.pulse.core.ui.utils.isLandscape
 import app.pulse.android.ui.screens.albumRoute
@@ -391,11 +396,19 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                             )
                         }
 
-                        FloatingDock(
-                            onPlayerClick = { playerBottomSheetState.expandSoft() },
-                            onSearchClick = { coroutineScope.launch { searchRoute.ensureGlobal("") } },
+                        val dockHiddenCount by LocalDockHiddenCount.current
+
+                        AnimatedVisibility(
+                            visible = dockHiddenCount == 0,
+                            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                             modifier = Modifier.align(Alignment.BottomCenter)
-                        )
+                        ) {
+                            FloatingDock(
+                                onPlayerClick = { playerBottomSheetState.expandSoft() },
+                                onSearchClick = { coroutineScope.launch { searchRoute.ensureGlobal("") } }
+                            )
+                        }
 
                         CompositionLocalProvider(
                             LocalAppearance provides LocalAppearance.current.let {

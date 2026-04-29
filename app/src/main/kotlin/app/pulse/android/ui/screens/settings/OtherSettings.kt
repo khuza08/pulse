@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -112,6 +114,11 @@ fun OtherSettings() {
     }.collectAsState(initial = 0)
 
     RouteHandler {
+            val dockHiddenCount = LocalDockHiddenCount.current
+            DisposableEffect(Unit) {
+                dockHiddenCount.value++
+                onDispose { dockHiddenCount.value-- }
+            }
         GlobalRoutes()
 
         Content {

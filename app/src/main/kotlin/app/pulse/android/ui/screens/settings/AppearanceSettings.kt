@@ -7,6 +7,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +44,11 @@ fun AppearanceSettings() {
         val isDark = isSystemInDarkTheme()
 
         RouteHandler {
+            val dockHiddenCount = LocalDockHiddenCount.current
+            DisposableEffect(Unit) {
+                dockHiddenCount.value++
+                onDispose { dockHiddenCount.value-- }
+            }
             GlobalRoutes()
 
             Content {

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -267,6 +269,11 @@ fun SyncSettings(
     )
 
     RouteHandler {
+            val dockHiddenCount = LocalDockHiddenCount.current
+            DisposableEffect(Unit) {
+                dockHiddenCount.value++
+                onDispose { dockHiddenCount.value-- }
+            }
         GlobalRoutes()
 
         Content {
