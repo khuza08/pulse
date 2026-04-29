@@ -49,7 +49,6 @@ import kotlinx.collections.immutable.toImmutableList
 fun LocalSongSearch(
     textFieldValue: TextFieldValue,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
-    decorationBox: @Composable (@Composable () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val (colorPalette, typography) = LocalAppearance.current
@@ -73,34 +72,9 @@ fun LocalSongSearch(
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
-                .only(WindowInsetsSides.Vertical + WindowInsetsSides.End).asPaddingValues(),
+                .only(WindowInsetsSides.Bottom).asPaddingValues(),
             modifier = Modifier.fillMaxSize()
         ) {
-            item(
-                key = "header",
-                contentType = 0
-            ) {
-                Header(
-                    titleContent = {
-                        BasicTextField(
-                            value = textFieldValue,
-                            onValueChange = onTextFieldValueChange,
-                            textStyle = typography.xxl.medium.align(TextAlign.End),
-                            singleLine = true,
-                            maxLines = 1,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                            cursorBrush = SolidColor(colorPalette.text),
-                            decorationBox = decorationBox
-                        )
-                    },
-                    actionsContent = {
-                        if (textFieldValue.text.isNotEmpty()) SecondaryTextButton(
-                            text = stringResource(R.string.clear),
-                            onClick = { onTextFieldValueChange(TextFieldValue()) }
-                        )
-                    }
-                )
-            }
 
             items(
                 items = items,

@@ -73,9 +73,6 @@ fun OnlineSearch(
     textFieldValue: TextFieldValue,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
     onSearch: (String) -> Unit,
-    onViewPlaylist: (String) -> Unit,
-    decorationBox: @Composable (@Composable () -> Unit) -> Unit,
-    focused: Boolean,
     modifier: Modifier = Modifier
 ) = Box(modifier = modifier) {
     val (colorPalette, typography) = LocalAppearance.current
@@ -100,22 +97,12 @@ fun OnlineSearch(
         )
     }
 
-    val playlistId = remember(textFieldValue.text) {
-        runCatching {
-            Url(textFieldValue.text).takeIf {
-                it.host.endsWith("youtube.com", ignoreCase = true) &&
-                    it.segments.lastOrNull()?.equals("playlist", ignoreCase = true) == true
-            }?.parameters?.get("list")
-        }.getOrNull()
-    }
-
-    val focusRequester = remember { FocusRequester() }
     val lazyListState = rememberLazyListState()
 
     LazyColumn(
         state = lazyListState,
         contentPadding = LocalPlayerAwareWindowInsets.current
-            .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
+            .only(WindowInsetsSides.Bottom)
             .asPaddingValues(),
         modifier = Modifier.fillMaxSize()
     ) {
@@ -127,57 +114,10 @@ fun OnlineSearch(
 
             DisposableEffect(Unit) {
                 val handle = container?.pin()
-
                 onDispose {
                     handle?.release()
                 }
             }
-
-            LaunchedEffect(focused) {
-                if (!focused) return@LaunchedEffect
-
-                delay(300)
-                focusRequester.requestFocus()
-            }
-
-            Header(
-                titleContent = {
-                    BasicTextField(
-                        value = textFieldValue,
-                        onValueChange = onTextFieldValueChange,
-                        textStyle = typography.xxl.medium.align(TextAlign.End),
-                        singleLine = true,
-                        maxLines = 1,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                if (textFieldValue.text.isNotEmpty()) onSearch(textFieldValue.text)
-                            }
-                        ),
-                        cursorBrush = SolidColor(colorPalette.text),
-                        decorationBox = decorationBox,
-                        modifier = Modifier.focusRequester(focusRequester)
-                    )
-                },
-                actionsContent = {
-                    if (playlistId != null) {
-                        val isAlbum = playlistId.startsWith("OLAK5uy_")
-
-                        SecondaryTextButton(
-                            text = if (isAlbum) stringResource(R.string.view_album)
-                            else stringResource(R.string.view_playlist),
-                            onClick = { onViewPlaylist(textFieldValue.text) }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    if (textFieldValue.text.isNotEmpty()) SecondaryTextButton(
-                        text = stringResource(R.string.clear),
-                        onClick = { onTextFieldValueChange(TextFieldValue()) }
-                    )
-                }
-            )
         }
 
         items(
