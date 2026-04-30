@@ -285,19 +285,21 @@ fun MorphingMiniPlayer(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                val artistFontSize = typography.xs.fontSize * (1f - 0.15f * progress)
-                BasicText(
-                    text = metadata?.artist ?: "-",
-                    style = typography.xs.secondary.copy(
-                        color = colorPalette.textSecondary,
-                        fontSize = artistFontSize
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.graphicsLayer {
-                        alpha = (1f - progress).coerceIn(0f, 1f)
-                    }
-                )
+                if (progress < 0.8f) {
+                    val artistFontSize = typography.xs.fontSize * (1f - 0.15f * progress)
+                    BasicText(
+                        text = metadata?.artist ?: "-",
+                        style = typography.xs.secondary.copy(
+                            color = colorPalette.textSecondary,
+                            fontSize = artistFontSize
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
+                        }
+                    )
+                }
             }
 
             if (progress < 0.8f) {
