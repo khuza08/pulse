@@ -29,7 +29,9 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,6 +137,12 @@ fun QuickPicks(
 
     val scrollState = rememberScrollState()
     val quickPicksLazyGridState = rememberLazyGridState()
+
+    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
+    val isScrolled by remember { derivedStateOf { scrollState.value > 0 } }
+    LaunchedEffect(isScrolled) {
+        dockScrolled.value = isScrolled
+    }
 
     val endPaddingValues = windowInsets.only(WindowInsetsSides.End).asPaddingValues()
 

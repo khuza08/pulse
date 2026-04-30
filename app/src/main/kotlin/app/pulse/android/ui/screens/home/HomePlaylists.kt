@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -110,6 +112,16 @@ fun HomePlaylists(
     )
 
     val lazyGridState = rememberLazyGridState()
+
+    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
+    val isScrolled by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0 || lazyGridState.firstVisibleItemScrollOffset > 0
+        }
+    }
+    LaunchedEffect(isScrolled) {
+        dockScrolled.value = isScrolled
+    }
 
     val builtInPlaylists by BuiltInPlaylistScreen.shownPlaylistsAsState()
 

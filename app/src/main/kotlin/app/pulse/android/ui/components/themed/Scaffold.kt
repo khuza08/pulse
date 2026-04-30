@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,10 @@ val LocalNavigationState = staticCompositionLocalOf<MutableState<NavigationState
 val LocalDockHiddenCount = staticCompositionLocalOf<MutableState<Int>> {
     mutableStateOf(0)
 }
+
+val LocalDockScrolled = staticCompositionLocalOf<MutableState<Boolean>> {
+    mutableStateOf(false)
+}
 @Composable
 fun Scaffold(
     key: String,
@@ -72,6 +77,11 @@ fun Scaffold(
         onDispose {
             globalNavigationState.value = previousState
         }
+    }
+
+    val dockScrolled = LocalDockScrolled.current
+    LaunchedEffect(tabIndex) {
+        dockScrolled.value = false
     }
 
     Row(

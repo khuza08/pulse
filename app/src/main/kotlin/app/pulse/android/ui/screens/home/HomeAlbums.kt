@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -60,6 +62,16 @@ fun HomeAlbums(
     )
 
     val lazyListState = rememberLazyListState()
+
+    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
+    val isScrolled by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
+        }
+    }
+    LaunchedEffect(isScrolled) {
+        dockScrolled.value = isScrolled
+    }
 
     Box {
         LazyColumn(

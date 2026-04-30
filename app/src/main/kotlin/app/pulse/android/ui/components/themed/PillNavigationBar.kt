@@ -129,7 +129,7 @@ fun PillNavigationBar(
 }
 
 @Composable
-private fun PillNavigationItem(
+internal fun PillNavigationItem(
     tab: Tab,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -203,6 +203,32 @@ fun FloatingSearchButton(
             contentDescription = null,
             colorFilter = ColorFilter.tint(colorPalette.text),
             modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun CollapsedNavigationCircle(
+    tabs: kotlinx.collections.immutable.ImmutableList<Tab>,
+    tabIndex: Int,
+    modifier: Modifier = Modifier
+) {
+    val dockScrolled = LocalDockScrolled.current
+    val currentTab = tabs.getOrNull(tabIndex) ?: return
+
+    Box(
+        modifier = modifier
+            .size(app.pulse.core.ui.Dimensions.items.collapsedPlayerHeight)
+            .shadow(elevation = 12.dp, shape = CircleShape)
+            .background(LocalAppearance.current.colorPalette.background1, CircleShape)
+            .clip(CircleShape)
+            .clickable { dockScrolled.value = false },
+        contentAlignment = Alignment.Center
+    ) {
+        PillNavigationItem(
+            tab = currentTab,
+            isSelected = true,
+            onClick = { dockScrolled.value = false }
         )
     }
 }

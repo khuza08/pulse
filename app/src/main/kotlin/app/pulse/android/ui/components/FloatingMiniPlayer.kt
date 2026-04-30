@@ -55,15 +55,12 @@ import app.pulse.android.utils.shouldBePlaying
 import app.pulse.android.utils.thumbnail
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
+import app.pulse.android.models.ui.UiMedia
 import coil3.compose.AsyncImage
 
 @Composable
-fun FloatingMiniPlayer(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+fun rememberMiniPlayerState(): MiniPlayerState {
     val binder = LocalPlayerServiceBinder.current
-    val (colorPalette, typography) = LocalAppearance.current
 
     var mediaItem by remember(binder) {
         mutableStateOf(
@@ -100,11 +97,34 @@ fun FloatingMiniPlayer(
     }
 
     val positionState = binder?.player?.positionAndDurationState()
-    val position = positionState?.component1() ?: 0L
     val duration = positionState?.component2() ?: 0L
 
     val activeMediaItem = mediaItem ?: historyMediaItem
     val metadata = activeMediaItem?.toUiMedia(duration)
+
+    return remember(activeMediaItem, metadata, shouldBePlaying, isBuffering, binder, mediaItem, historyMediaItem) {
+        MiniPlayerState(activeMediaItem, metadata, shouldBePlaying, isBuffering, binder, mediaItem, historyMediaItem)
+    }
+}
+
+data class MiniPlayerState(
+    val activeMediaItem: MediaItem?,
+    val metadata: UiMedia?,
+    val shouldBePlaying: Boolean,
+    val isBuffering: Boolean,
+    val binder: app.pulse.android.service.PlayerService.Binder?,
+    val mediaItem: MediaItem?,
+    val historyMediaItem: MediaItem?
+)
+
+@Composable
+fun FloatingMiniPlayer(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val (colorPalette, typography) = LocalAppearance.current
+    val state = rememberMiniPlayerState()
+    val (activeMediaItem, metadata, shouldBePlaying, isBuffering, binder) = state
 
     Box(
         modifier = modifier
@@ -175,9 +195,9 @@ fun FloatingMiniPlayer(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null,
                                     onClick = {
-                                        if (isPlaying) binder?.player?.pause()
-                                        else if (mediaItem != null) binder?.player?.play()
-                                        else historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
+                                        if (shouldBePlaying) binder?.player?.pause()
+                                        else if (state.mediaItem != null) binder?.player?.play()
+                                        else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
                                     }
                                 ),
                             contentAlignment = Alignment.Center
@@ -198,6 +218,58 @@ fun FloatingMiniPlayer(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CompactMiniPlayer(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val state = rememberMiniPlayerState()
+    val (activeMediaItem, metadata) = state
+    val (colorPalette, typography) = LocalAppearance.current
+
+    Box(
+        modifier = modifier
+            .shadow(elevation = 12.dp, shape = CircleShape)
+            .clip(CircleShape)
+            .background(colorPalette.background1)
+            .height(Dimensions.items.collapsedPlayerHeight)
+            .clickable(
+                enabled = activeMediaItem != null,
+                onClick = onClick
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(Dimensions.items.collapsedPlayerHeight)
+                    .padding(8.dp)
+                    .clip(CircleShape)
+                    .background(colorPalette.background0)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            BasicText(
+                text = metadata?.title ?: stringResource(R.string.no_music_played),
+                style = typography.xs.semiBold.copy(color = colorPalette.text),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
