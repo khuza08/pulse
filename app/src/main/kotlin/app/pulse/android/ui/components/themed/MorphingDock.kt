@@ -41,12 +41,15 @@ fun MorphingDock(
             .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing) // Room for two rows
     ) {
         val fullWidth = maxWidth
-        val circleSize = Dimensions.items.collapsedPlayerHeight
+        val baseSize = Dimensions.items.collapsedPlayerHeight
+        
+        // Gradually reduce height by 20% as progress increases
+        val currentCircleSize = (baseSize * (1f - 0.2f * progress)).coerceAtLeast(baseSize * 0.75f)
         
         // --- 1. Search Button (Stays at Bottom-Right) ---
         Box(
             modifier = Modifier
-                .size(circleSize)
+                .size(currentCircleSize)
                 .align(Alignment.BottomEnd)
         ) {
             FloatingSearchButton(onClick = onSearchClick)
@@ -54,14 +57,15 @@ fun MorphingDock(
 
         // --- 2. Navigation Bar (Stays at Bottom-Left, Morphs Width) ---
         if (!isLandscape && navigationState != null) {
-            // Calculate the width: shrinks from (fullWidth - search - spacing) to (circleSize)
-            val expandedNavWidth = fullWidth - circleSize - spacing
-            val currentNavWidth = (expandedNavWidth + (circleSize - expandedNavWidth) * phase1)
-                .coerceAtLeast(circleSize)
+            // Calculate the width: shrinks from (fullWidth - baseSize - spacing) to (currentCircleSize)
+            // Note: We use baseSize for the expanded state width to maintain consistent spacing
+            val expandedNavWidth = fullWidth - baseSize - spacing
+            val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * phase1)
+                .coerceAtLeast(currentCircleSize)
 
             Box(
                 modifier = Modifier
-                    .height(circleSize)
+                    .height(currentCircleSize)
                     .width(currentNavWidth)
                     .align(Alignment.BottomStart)
             ) {
@@ -79,7 +83,9 @@ fun MorphingDock(
 
         // --- 3. Mini Player (Slides from Top to Middle Gap) ---
         // Landing zone is between the NavCircle and SearchButton
-        val playerLandingWidth = fullWidth - (circleSize * 2) - (spacing * 2)
+        // As currentCircleSize shrinks, the landing width grows
+        val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
+        
         // Expanded width is the full available width
         val expandedPlayerWidth = fullWidth
         val currentPlayerWidth = (expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * phase2)
@@ -87,12 +93,13 @@ fun MorphingDock(
         
         Box(
             modifier = Modifier
-                .height(circleSize)
+                .height(currentCircleSize)
                 .width(currentPlayerWidth)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
                     // Slide down from top row to bottom row
-                    val travelDistance = (circleSize + spacing).toPx()
+                    // We use baseSize here for travel distance to ensure it lands correctly
+                    val travelDistance = (baseSize + spacing).toPx()
                     translationY = -travelDistance * (1f - phase3)
                     
                     // Fade out the player slightly if not active

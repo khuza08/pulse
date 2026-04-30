@@ -135,7 +135,6 @@ fun FloatingMiniPlayer(
             .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
-            .height(Dimensions.items.collapsedPlayerHeight)
             .clickable(
                 enabled = activeMediaItem != null,
                 onClick = onClick
@@ -241,7 +240,6 @@ fun MorphingMiniPlayer(
             .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
-            .height(Dimensions.items.collapsedPlayerHeight)
             .clickable(
                 enabled = activeMediaItem != null,
                 onClick = onClick
@@ -369,7 +367,6 @@ fun CompactMiniPlayer(
             .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
-            .height(Dimensions.items.collapsedPlayerHeight)
             .clickable(
                 enabled = activeMediaItem != null,
                 onClick = onClick
