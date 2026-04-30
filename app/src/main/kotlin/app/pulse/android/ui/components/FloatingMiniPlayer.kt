@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -286,11 +287,13 @@ fun MorphingMiniPlayer(
                 )
             }
 
-            // Controls fade out linearly (clamped alpha for safety)
+            // Controls fade out linearly and become non-interactive when morphed
             Row(
-                modifier = Modifier.graphicsLayer {
-                    alpha = (1f - progress).coerceIn(0f, 1f)
-                },
+                modifier = Modifier
+                    .graphicsLayer {
+                        alpha = (1f - progress).coerceIn(0f, 1f)
+                    }
+                    .then(if (progress > 0.5f) Modifier.pointerInput(Unit) {} else Modifier),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (activeMediaItem != null) {

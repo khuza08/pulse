@@ -133,7 +133,8 @@ fun PillNavigationBar(
 internal fun PillNavigationItem(
     tab: Tab,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     val (colorPalette) = LocalAppearance.current
     val backgroundColor by animateColorAsState(
@@ -150,7 +151,7 @@ internal fun PillNavigationItem(
             .size(Dimensions.items.collapsedPlayerHeight - 8.dp)
             .clip(CircleShape)
             .background(backgroundColor)
-            .clickable(onClick = onClick),
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -163,8 +164,9 @@ internal fun PillNavigationItem(
 }
 
 @Composable
-private fun SettingsNavigationItem(
-    onClick: () -> Unit
+internal fun SettingsNavigationItem(
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     val (colorPalette) = LocalAppearance.current
     Box(
@@ -172,7 +174,7 @@ private fun SettingsNavigationItem(
             .size(Dimensions.items.collapsedPlayerHeight - 8.dp)
             .clip(CircleShape)
             .background(colorPalette.background1)
-            .clickable(onClick = onClick),
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -249,28 +251,9 @@ fun MorphingNavigationBar(
         // We render both but control alpha via graphicsLayer. 
         // This avoids "snapping" when the 'if' condition changes.
         
-        // Single centered selected item
-        val selectedTab = tabs.getOrNull(tabIndex)
-        if (selectedTab != null) {
-            Box(modifier = Modifier.graphicsLayer { 
-                alpha = singleIconAlpha 
-                // Slight scale effect for extra fluidity (clamped for visual stability)
-                val scale = (0.8f + (singleIconAlpha * 0.2f)).coerceIn(0f, 1.2f)
-                scaleX = scale
-                scaleY = scale
-            }) {
-                PillNavigationItem(
-                    tab = selectedTab,
-                    isSelected = true,
-                    onClick = { dockScrolled.value = false }
-                )
-            }
-        }
-        
-        // Full LazyRow
+        // 1. Full LazyRow (Rendered first, at the bottom of the stack)
         @Suppress("DEPRECATION")
         val overscrollConfig = LocalOverscrollConfiguration provides null
-
         CompositionLocalProvider(overscrollConfig) {
             Box(modifier = Modifier.graphicsLayer { alpha = lazyRowAlpha }) {
                 LazyRow(
@@ -282,24 +265,43 @@ fun MorphingNavigationBar(
                 ) {
                     itemsIndexed(visibleTabsWithIndices) { _, (originalIndex, tab) ->
                         val isSelected = originalIndex == tabIndex
-                        // Non-selected items fade out as the whole bar shrinks
                         val itemAlpha = if (isSelected) 1f else (1f - progress).coerceIn(0f, 1f)
-                        
                         Box(modifier = Modifier.graphicsLayer { alpha = itemAlpha }) {
                             PillNavigationItem(
                                 tab = tab,
                                 isSelected = isSelected,
-                                onClick = { onTabChange(originalIndex) }
+                                onClick = { onTabChange(originalIndex) },
+                                enabled = progress < 0.2f
                             )
                         }
                     }
-
                     item {
                         Box(modifier = Modifier.graphicsLayer { alpha = (1f - progress).coerceIn(0f, 1f) }) {
-                            SettingsNavigationItem(onClick = onSettingsClick)
+                            SettingsNavigationItem(
+                                onClick = onSettingsClick,
+                                enabled = progress < 0.2f
+                            )
                         }
                     }
                 }
+            }
+        }
+
+        // 2. Single centered selected item (Rendered LAST so it's on top of the LazyRow)
+        val selectedTab = tabs.getOrNull(tabIndex)
+        if (selectedTab != null) {
+            Box(modifier = Modifier.graphicsLayer { 
+                alpha = singleIconAlpha 
+                val scale = (0.8f + (singleIconAlpha * 0.2f)).coerceIn(0f, 1.2f)
+                scaleX = scale
+                scaleY = scale
+            }) {
+                PillNavigationItem(
+                    tab = selectedTab,
+                    isSelected = true,
+                    onClick = { dockScrolled.value = false },
+                    enabled = progress > 0.8f
+                )
             }
         }
     }
