@@ -18,8 +18,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -552,86 +550,18 @@ private fun FloatingDock(
     modifier: Modifier = Modifier
 ) {
     val navigationState = LocalNavigationState.current
-    val isScrolled by app.pulse.android.ui.components.themed.LocalDockScrolled.current
     val isLandscape = isLandscape
+    val progress = app.pulse.android.ui.components.themed.rememberDockMorphProgress()
 
-    Box(
+    app.pulse.android.ui.components.themed.MorphingDock(
+        progress = progress,
+        navigationState = navigationState?.value,
+        onPlayerClick = onPlayerClick,
+        onSearchClick = onSearchClick,
+        onSettingsClick = { settingsRoute.global() },
+        isLandscape = isLandscape,
         modifier = modifier
-            .padding(horizontal = 24.dp, vertical = 24.dp)
-            .fillMaxWidth()
-            .animateContentSize(),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        AnimatedContent(
-            targetState = if (isLandscape || navigationState?.value == null) false else isScrolled,
-            label = "dockCollapse"
-        ) { collapsed ->
-            if (collapsed) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    app.pulse.android.ui.components.themed.CollapsedNavigationCircle(
-                        tabs = navigationState?.value?.tabs ?: persistentListOf(),
-                        tabIndex = navigationState?.value?.tabIndex ?: 0
-                    )
-
-                    app.pulse.android.ui.components.CompactMiniPlayer(
-                        onClick = onPlayerClick,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    app.pulse.android.ui.components.themed.FloatingSearchButton(
-                        onClick = onSearchClick
-                    )
-                }
-            } else {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        app.pulse.android.ui.components.FloatingMiniPlayer(
-                            onClick = onPlayerClick,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        if (isLandscape || navigationState?.value == null) {
-                            app.pulse.android.ui.components.themed.FloatingSearchButton(
-                                onClick = onSearchClick
-                            )
-                        }
-                    }
-
-                    if (!isLandscape && navigationState?.value != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            app.pulse.android.ui.components.themed.PillNavigationBar(
-                                tabs = navigationState.value?.tabs ?: persistentListOf(),
-                                tabIndex = navigationState.value?.tabIndex ?: 0,
-                                onTabChange = navigationState.value?.onTabChange ?: {},
-                                onSettingsClick = { settingsRoute.global() },
-                                hiddenTabs = navigationState.value?.hiddenTabs ?: persistentListOf(),
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            app.pulse.android.ui.components.themed.FloatingSearchButton(
-                                onClick = onSearchClick
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+    )
 }
 
 context(context: Context)

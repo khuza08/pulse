@@ -7,6 +7,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.getValue
+
 /**
  * A [NestedScrollConnection] that toggles the dock's scroll state based on scroll direction.
  * Downward scroll collapses the dock, upward scroll expands it.
@@ -29,4 +34,20 @@ fun rememberDockScrollConnection(
             }
         }
     }
+}
+
+/**
+ * Provides an animated progress value (0f to 1f) representing the dock's collapse state.
+ */
+@Composable
+fun rememberDockMorphProgress(): Float {
+    val isScrolled by LocalDockScrolled.current
+    return animateFloatAsState(
+        targetValue = if (isScrolled) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = 0.6f, // Spring.DampingRatioLowBouncy
+            stiffness = 300f
+        ),
+        label = "dockMorphProgress"
+    ).value
 }
