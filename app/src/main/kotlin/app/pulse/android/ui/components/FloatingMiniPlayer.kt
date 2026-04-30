@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -247,38 +249,49 @@ fun MorphingMiniPlayer(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .fillMaxSize()
+                .padding(horizontal = (8.dp * (1f - progress)).coerceAtLeast(4.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val thumbSize = (Dimensions.items.collapsedPlayerHeight * (1f - 0.4f * progress))
+
             AsyncImage(
                 model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(Dimensions.items.collapsedPlayerHeight)
-                    .padding(8.dp)
+                    .size(thumbSize)
+                    .padding(4.dp)
                     .clip(CircleShape)
                     .background(colorPalette.background0)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width((12.dp * (1f - progress)).coerceAtLeast(6.dp)))
 
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
+                // Dynamically scale text size based on progress
+                val titleFontSize = typography.xs.fontSize * (1f - 0.1f * progress)
+                
                 BasicText(
                     text = metadata?.title ?: stringResource(R.string.no_music_played),
-                    style = typography.xs.semiBold.copy(color = colorPalette.text),
+                    style = typography.xs.semiBold.copy(
+                        color = colorPalette.text,
+                        fontSize = titleFontSize
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Artist text fades out linearly (clamped alpha for safety)
+                val artistFontSize = typography.xs.fontSize * (1f - 0.15f * progress)
                 BasicText(
                     text = metadata?.artist ?: "-",
-                    style = typography.xs.secondary.copy(color = colorPalette.textSecondary),
+                    style = typography.xs.secondary.copy(
+                        color = colorPalette.textSecondary,
+                        fontSize = artistFontSize
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.graphicsLayer {
@@ -287,54 +300,54 @@ fun MorphingMiniPlayer(
                 )
             }
 
-            // Controls fade out linearly and become non-interactive when morphed
-            Row(
-                modifier = Modifier
-                    .graphicsLayer {
-                        alpha = (1f - progress).coerceIn(0f, 1f)
-                    }
-                    .then(if (progress > 0.5f) Modifier.pointerInput(Unit) {} else Modifier),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (activeMediaItem != null) {
-                    AnimatedContent(
-                        targetState = shouldBePlaying to isBuffering,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = ""
-                    ) { (isPlaying, buffering) ->
-                        Box(
-                            modifier = Modifier
-                                .padding(all = 8.dp)
-                                .size(24.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = {
-                                        if (shouldBePlaying) binder?.player?.pause()
-                                        else if (state.mediaItem != null) binder?.player?.play()
-                                        else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
-                                    }
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (buffering && isPlaying) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            } else {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                                    contentDescription = null,
-                                    colorFilter = ColorFilter.tint(colorPalette.text),
-                                    modifier = Modifier.size(20.dp)
-                                )
+            if (progress < 0.8f) {
+                Row(
+                    modifier = Modifier
+                        .graphicsLayer {
+                            alpha = (1f - (progress / 0.8f)).coerceIn(0f, 1f)
+                        }
+                        .then(if (progress > 0.5f) Modifier.pointerInput(Unit) {} else Modifier),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (activeMediaItem != null) {
+                        AnimatedContent(
+                            targetState = shouldBePlaying to isBuffering,
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = ""
+                        ) { (isPlaying, buffering) ->
+                            Box(
+                                modifier = Modifier
+                                    .padding(all = 8.dp)
+                                    .size(24.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = {
+                                            if (shouldBePlaying) binder?.player?.pause()
+                                            else if (state.mediaItem != null) binder?.player?.play()
+                                            else state.historyMediaItem?.let { binder?.player?.seamlessPlay(it) }
+                                        }
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (buffering && isPlaying) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                } else {
+                                    androidx.compose.foundation.Image(
+                                        painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                                        contentDescription = null,
+                                        colorFilter = ColorFilter.tint(colorPalette.text),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
                     }
-                } else if (progress > 0.8f) {
-                    // Just a bit of spacing at the end when collapsed
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
+            } else {
+                Spacer(modifier = Modifier.width(8.dp))
             }
         }
     }
@@ -363,7 +376,7 @@ fun CompactMiniPlayer(
         Row(
             modifier = Modifier
                 .padding(horizontal = 8.dp)
-                .fillMaxWidth(),
+                .fillMaxSize(), // Fill height to enable vertical centering
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
@@ -371,8 +384,8 @@ fun CompactMiniPlayer(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(Dimensions.items.collapsedPlayerHeight)
-                    .padding(8.dp)
+                    .size(Dimensions.items.collapsedPlayerHeight * 0.55f) // Smaller, more balanced size
+                    .padding(2.dp)
                     .clip(CircleShape)
                     .background(colorPalette.background0)
             )
