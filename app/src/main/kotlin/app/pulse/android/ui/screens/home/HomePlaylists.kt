@@ -113,16 +113,6 @@ fun HomePlaylists(
 
     val lazyGridState = rememberLazyGridState()
 
-    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
-    val isScrolled by remember {
-        derivedStateOf {
-            lazyGridState.firstVisibleItemIndex > 0 || lazyGridState.firstVisibleItemScrollOffset > 0
-        }
-    }
-    LaunchedEffect(isScrolled) {
-        dockScrolled.value = isScrolled
-    }
-
     val builtInPlaylists by BuiltInPlaylistScreen.shownPlaylistsAsState()
 
     Box {

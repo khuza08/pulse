@@ -138,12 +138,6 @@ fun QuickPicks(
     val scrollState = rememberScrollState()
     val quickPicksLazyGridState = rememberLazyGridState()
 
-    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
-    val isScrolled by remember { derivedStateOf { scrollState.value > 0 } }
-    LaunchedEffect(isScrolled) {
-        dockScrolled.value = isScrolled
-    }
-
     val endPaddingValues = windowInsets.only(WindowInsetsSides.End).asPaddingValues()
 
     val sectionTextModifier = Modifier

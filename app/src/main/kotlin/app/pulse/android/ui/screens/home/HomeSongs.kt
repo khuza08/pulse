@@ -149,16 +149,6 @@ fun HomeSongs(
 
     val lazyListState = rememberLazyListState()
 
-    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
-    val isScrolled by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
-        }
-    }
-    LaunchedEffect(isScrolled) {
-        dockScrolled.value = isScrolled
-    }
-
     val (currentMediaId, playing) = playingSong(binder)
 
     Box(

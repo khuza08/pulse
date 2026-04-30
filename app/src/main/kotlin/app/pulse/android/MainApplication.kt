@@ -78,6 +78,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -382,7 +383,14 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                     LocalPlayerAwareWindowInsets provides playerAwareWindowInsets
                 ) {
                     val coroutineScope = rememberCoroutineScope()
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    val dockScrolled = app.pulse.android.ui.components.themed.LocalDockScrolled.current
+                    val dockScrollConnection = app.pulse.android.ui.components.themed.rememberDockScrollConnection(dockScrolled)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(dockScrollConnection)
+                    ) {
                         val isDownloading by downloadState.collectAsState()
 
                         HomeScreen()
