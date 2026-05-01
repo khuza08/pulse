@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import app.pulse.android.R
 import app.pulse.core.ui.Dimensions
 import app.pulse.core.ui.LocalAppearance
+import androidx.compose.foundation.text.BasicText
+import app.pulse.android.utils.semiBold
+import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -117,12 +120,13 @@ fun PillNavigationBar(
                     PillNavigationItem(
                         tab = tab,
                         isSelected = originalIndex == tabIndex,
-                        onClick = { onTabChange(originalIndex) }
+                        onClick = { onTabChange(originalIndex) },
+                        labelAlpha = 1f // Always show labels in the static pill bar
                     )
                 }
 
                 item {
-                    SettingsNavigationItem(onClick = onSettingsClick)
+                    SettingsNavigationItem(onClick = onSettingsClick, labelAlpha = 1f)
                 }
             }
         }
@@ -134,9 +138,10 @@ internal fun PillNavigationItem(
     tab: Tab,
     isSelected: Boolean,
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    labelAlpha: Float = 0f
 ) {
-    val (colorPalette) = LocalAppearance.current
+    val (colorPalette, typography) = LocalAppearance.current
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) colorPalette.background2 else colorPalette.background1,
         label = "backgroundColor"
@@ -146,36 +151,54 @@ internal fun PillNavigationItem(
         label = "iconColor"
     )
 
-    Box(
-        modifier = Modifier
-            .size(Dimensions.items.collapsedPlayerHeight - 8.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(tab.icon),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(iconColor),
-            modifier = Modifier.size(22.dp)
+    Column(
+    modifier = Modifier
+        .width(72.dp)
+        .height(Dimensions.items.collapsedPlayerHeight - 8.dp)
+        .clip(CircleShape)
+        .background(backgroundColor)
+        .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+) {
+    Image(
+        painter = painterResource(tab.icon),
+        contentDescription = null,
+        colorFilter = ColorFilter.tint(iconColor),
+        modifier = Modifier.size(22.dp)
+    )
+
+    if (labelAlpha > 0.05f) {
+        Spacer(modifier = Modifier.height(2.dp * labelAlpha))
+        BasicText(
+            text = tab.title(),
+            style = typography.xs.semiBold.copy(
+                color = iconColor,
+                fontSize = 9.sp
+            ),           
+            modifier = Modifier.graphicsLayer { alpha = labelAlpha },
+            maxLines = 1
         )
     }
+}
 }
 
 @Composable
 internal fun SettingsNavigationItem(
     onClick: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    labelAlpha: Float = 0f
 ) {
-    val (colorPalette) = LocalAppearance.current
-    Box(
+    val (colorPalette, typography) = LocalAppearance.current
+    Column(
         modifier = Modifier
-            .size(Dimensions.items.collapsedPlayerHeight - 8.dp)
+            .width(60.dp)
+            .height(Dimensions.items.collapsedPlayerHeight - 8.dp)
             .clip(CircleShape)
             .background(colorPalette.background1)
             .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(R.drawable.settings),
@@ -183,6 +206,18 @@ internal fun SettingsNavigationItem(
             colorFilter = ColorFilter.tint(colorPalette.textSecondary),
             modifier = Modifier.size(22.dp)
         )
+        if (labelAlpha > 0.05f) {
+            Spacer(modifier = Modifier.height(2.dp * labelAlpha))
+            BasicText(
+                text = "Settings",
+                style = typography.xs.semiBold.copy(
+                    color = colorPalette.textSecondary,
+                    fontSize = 9.sp
+                ),
+                modifier = Modifier.graphicsLayer { alpha = labelAlpha },
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -271,7 +306,8 @@ fun MorphingNavigationBar(
                                 tab = tab,
                                 isSelected = isSelected,
                                 onClick = { onTabChange(originalIndex) },
-                                enabled = progress < 0.2f
+                                enabled = progress < 0.2f,
+                                labelAlpha = (1f - progress * 3f).coerceIn(0f, 1f)
                             )
                         }
                     }
@@ -279,7 +315,8 @@ fun MorphingNavigationBar(
                         Box(modifier = Modifier.graphicsLayer { alpha = (1f - progress).coerceIn(0f, 1f) }) {
                             SettingsNavigationItem(
                                 onClick = onSettingsClick,
-                                enabled = progress < 0.2f
+                                enabled = progress < 0.2f,
+                                labelAlpha = (1f - progress * 3f).coerceIn(0f, 1f)
                             )
                         }
                     }
