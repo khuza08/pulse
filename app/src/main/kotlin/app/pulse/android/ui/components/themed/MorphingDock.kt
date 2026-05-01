@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import app.pulse.android.ui.components.MorphingMiniPlayer
+import app.pulse.android.ui.components.CompactMiniPlayer
 import app.pulse.core.ui.Dimensions
 
 @Composable
@@ -112,6 +113,7 @@ fun MorphingDock(
             }
         } else {
             // --- SUB-PAGE REFACTOR: Centered Compact Player + Radio Button ---
+            val compactHeight = 48.dp
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -121,26 +123,26 @@ fun MorphingDock(
                 horizontalArrangement = Arrangement.spacedBy(spacing)
             ) {
                 // Fixed compact size for sub-pages
-                val compactWidth = 200.dp 
+                val compactWidth = 240.dp 
                 
                 Box(
                     modifier = Modifier
-                        .height(baseSize)
+                        .height(compactHeight)
                         .width(compactWidth)
                 ) {
-                    MorphingMiniPlayer(
-                        progress = 1f, // Always compact
+                    CompactMiniPlayer(
                         onClick = onPlayerClick,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
                 
                 RadioCircleButton(
-                    modifier = Modifier.size(baseSize),
+                    modifier = Modifier.size(compactHeight),
                     onClick = { radioAction?.invoke() }
                 )
             }
         }
+
 
 
     }
