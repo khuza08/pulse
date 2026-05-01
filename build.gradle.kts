@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.android.lint) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.chaquo) apply false
+    alias(libs.plugins.google.services) apply false
     alias(libs.plugins.detekt)
 }
 

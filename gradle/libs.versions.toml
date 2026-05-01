@@ -13,6 +13,7 @@ detekt = "1.23.8"
 workmanager = "2.11.2"
 credentials = "1.5.0"
 coil = "3.4.0"
+firebase = "34.12.0"
 
 [plugins]
 android_application = { id = "com.android.application", version.ref = "agp" }
@@ -25,6 +26,7 @@ kotlin_parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref =
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 chaquo = { id = "com.chaquo.python", version = "17.0.0" }
+google_services = { id = "com.google.gms.google-services", version = "4.4.4" }
 
 [libraries]
 core_ktx = { module = "androidx.core:core-ktx", version = "1.18.0" }
@@ -82,6 +84,9 @@ logback = { module = "com.github.tony19:logback-android", version = "3.0.0" }
 brotli = { module = "org.brotli:dec", version = "0.1.2" }
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 monet = { module = "com.github.KieronQuinn:MonetCompat", version = "0.4.1" }
+
+firebase_bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
+firebase_messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 

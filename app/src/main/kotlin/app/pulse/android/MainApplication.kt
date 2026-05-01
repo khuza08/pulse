@@ -656,6 +656,9 @@ class MainApplication : Application(), SingletonImageLoader.Factory, Configurati
             MonetCompat.enablePaletteCompat()
             with(ServiceNotifications) { createAll() }
         }
+
+        // Subscribe to FCM push update notifications
+        app.pulse.android.service.PulseMessagingService.subscribe()
     }
 
     override fun newImageLoader(context: PlatformContext) = ImageLoader.Builder(this)

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.chaquo)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -221,6 +222,9 @@ dependencies {
 
     implementation(libs.workmanager)
     implementation(libs.workmanager.ktx)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     implementation(libs.credentials)
     implementation(libs.credentials.play)
