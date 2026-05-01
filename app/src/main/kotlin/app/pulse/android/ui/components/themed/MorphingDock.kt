@@ -53,8 +53,8 @@ fun MorphingDock(
             animatable.animateTo(
                 targetValue = 2f,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioHighBouncy,
-                    stiffness = Spring.StiffnessVeryLow // Lazier, smoother start
+                    dampingRatio = Spring.DampingRatioLowBouncy, // Subtle settle instead of wild wobble
+                    stiffness = Spring.StiffnessLow // Faster but still smooth
                 )
             )
         }
