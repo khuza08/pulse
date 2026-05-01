@@ -134,19 +134,9 @@ fun ArtistLocalSongs(
             }
 
             FloatingActionsContainerWithScrollToTop(
-                lazyListState = lazyListState,
-                icon = R.drawable.shuffle,
-                onClick = {
-                    songs?.let { songs ->
-                        if (songs.isNotEmpty()) {
-                            binder?.stopRadio()
-                            binder?.player?.forcePlayFromBeginning(
-                                songs.shuffled().map(Song::asMediaItem)
-                            )
-                        }
-                    }
-                }
+                lazyListState = lazyListState
             )
         }
     }
 }
+

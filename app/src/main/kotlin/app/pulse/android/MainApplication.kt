@@ -99,7 +99,9 @@ import app.pulse.android.ui.components.rememberBottomSheetState
 import app.pulse.android.ui.components.themed.LinearProgressIndicator
 import app.pulse.android.ui.components.themed.LocalDockHiddenCount
 import app.pulse.android.ui.components.themed.LocalNavigationState
+import app.pulse.android.ui.components.themed.LocalRadioAction
 import app.pulse.core.ui.utils.isLandscape
+
 import app.pulse.android.ui.screens.albumRoute
 import app.pulse.android.ui.screens.artistRoute
 import app.pulse.android.ui.screens.home.HomeScreen
@@ -297,8 +299,10 @@ class MainActivity : ComponentActivity(), MonetColorsChangedListener {
                 LocalShimmerTheme provides shimmerTheme(),
                 LocalLayoutDirection provides LayoutDirection.Ltr,
                 LocalPersistMap provides Dependencies.application.persistMap,
-                LocalMonetCompat provides monet
+                LocalMonetCompat provides monet,
+                LocalRadioAction provides null
             ) {
+
                 content()
             }
         }

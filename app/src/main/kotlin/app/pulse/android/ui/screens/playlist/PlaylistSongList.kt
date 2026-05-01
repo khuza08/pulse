@@ -240,20 +240,7 @@ fun PlaylistSongList(
                 }
             }
 
-            FloatingActionsContainerWithScrollToTop(
-                lazyListState = lazyListState,
-                icon = R.drawable.shuffle,
-                onClick = {
-                    playlistPage?.songsPage?.items?.let { songs ->
-                        if (songs.isNotEmpty()) {
-                            binder?.stopRadio()
-                            binder?.player?.forcePlayFromBeginning(
-                                songs.shuffled().map(Innertube.SongItem::asMediaItem)
-                            )
-                        }
-                    }
-                }
-            )
         }
     }
 }
+

@@ -321,19 +321,11 @@ fun LocalPlaylistSongs(
 
         FloatingActionsContainerWithScrollToTop(
             lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
-            visible = !reorderingState.isDragging,
-            onClick = {
-                if (songs.isEmpty()) return@FloatingActionsContainerWithScrollToTop
-
-                binder?.stopRadio()
-                binder?.player?.forcePlayFromBeginning(
-                    songs.shuffled().map { it.asMediaItem }
-                )
-            }
+            visible = !reorderingState.isDragging
         )
     }
 }
+
 
 private suspend fun sync(
     playlist: Playlist,

@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +34,9 @@ import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.Attribution
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
+import app.pulse.android.ui.components.themed.LocalRadioAction
+import app.pulse.android.ui.components.themed.LocalRadioVisible
+
 import app.pulse.android.ui.components.themed.LayoutWithAdaptiveThumbnail
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.SecondaryTextButton
@@ -78,39 +84,44 @@ fun ArtistOverview(
     val endPaddingValues = windowInsets.only(WindowInsetsSides.End).asPaddingValues()
 
     val scrollState = rememberScrollState()
+    val radioVisible = LocalRadioVisible.current
 
-    Box {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(colorPalette.background0)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(
-                    windowInsets
-                        .only(WindowInsetsSides.Vertical)
-                        .asPaddingValues()
-                )
-        ) {
-            Box(modifier = Modifier.padding(endPaddingValues)) {
-                headerContent {
-                    youtubeArtistPage?.shuffleEndpoint?.let { endpoint ->
-                        SecondaryTextButton(
-                            text = stringResource(R.string.shuffle),
-                            onClick = {
-                                binder?.stopRadio()
-                                binder?.playRadio(endpoint)
-                            }
-                        )
-                    }
-                    youtubeArtistPage?.subscribersCountText?.let { subscribers ->
-                        BasicText(
-                            text = stringResource(R.string.format_subscribers, subscribers),
-                            style = typography.xxs.medium
-                        )
+    LaunchedEffect(youtubeArtistPage?.radioEndpoint) {
+        radioVisible.value = youtubeArtistPage?.radioEndpoint != null
+    }
+
+    CompositionLocalProvider(
+        LocalRadioAction provides {
+            youtubeArtistPage?.radioEndpoint?.let { endpoint ->
+                binder?.stopRadio()
+                binder?.playRadio(endpoint)
+            }
+        }
+    ) {
+        Box {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .background(colorPalette.background0)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        windowInsets
+                            .only(WindowInsetsSides.Vertical)
+                            .asPaddingValues()
+                    )
+            ) {
+                Box(modifier = Modifier.padding(endPaddingValues)) {
+                    headerContent {
+                        youtubeArtistPage?.subscribersCountText?.let { subscribers ->
+                            BasicText(
+                                text = stringResource(R.string.format_subscribers, subscribers),
+                                style = typography.xxs.medium
+                            )
+                        }
                     }
                 }
-            }
+
 
             if (!isLandscape) thumbnailContent()
 
@@ -264,20 +275,12 @@ fun ArtistOverview(
 
                 Unit
             } ?: ArtistOverviewBodyPlaceholder()
-        }
-
-        youtubeArtistPage?.radioEndpoint?.let { endpoint ->
-            FloatingActionsContainerWithScrollToTop(
-                scrollState = scrollState,
-                icon = R.drawable.radio,
-                onClick = {
-                    binder?.stopRadio()
-                    binder?.playRadio(endpoint)
-                }
-            )
+            }
         }
     }
 }
+
+
 
 @Composable
 fun ArtistOverviewBodyPlaceholder(modifier: Modifier = Modifier) = ShimmerHost(

@@ -25,6 +25,9 @@ fun MorphingDock(
     // Smooth sub-progress calculation with Elastic Synchronized Landing
     // We synchronize all phases to reach 1.0 at progress 1.0.
     
+    val isSubPage = navigationState == null
+    val radioAction = LocalRadioAction.current
+    
     // Phase 1 (Starts 0.0): NavBar shrinks Pill -> Circle
     val navMorphProgress = (progress / 1.0f).coerceAtLeast(0f)
     
@@ -46,65 +49,100 @@ fun MorphingDock(
         // Gradually reduce height by 20% as progress increases
         val currentCircleSize = (baseSize * (1f - 0.2f * progress)).coerceAtLeast(baseSize * 0.75f)
         
-        // --- 1. Search Button (Stays at Bottom-Right) ---
-        Box(
-            modifier = Modifier
-                .size(currentCircleSize)
-                .align(Alignment.BottomEnd)
-        ) {
-            FloatingSearchButton(onClick = onSearchClick)
-        }
+        if (!isSubPage) {
+            // --- 1. Search Button (Stays at Bottom-Right) ---
+            Box(
+                modifier = Modifier
+                    .size(currentCircleSize)
+                    .align(Alignment.BottomEnd)
+            ) {
+                FloatingSearchButton(onClick = onSearchClick)
+            }
 
-        // --- 2. Navigation Bar (Stays at Bottom-Left, Morphs Width) ---
-        if (!isLandscape && navigationState != null) {
-            // Calculate the width: shrinks from (fullWidth - baseSize - spacing) to (currentCircleSize)
-            val expandedNavWidth = fullWidth - baseSize - spacing
-            val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
-                .coerceAtLeast(currentCircleSize)
+            // --- 2. Navigation Bar (Stays at Bottom-Left, Morphs Width) ---
+            if (!isLandscape && navigationState != null) {
+                // Calculate the width: shrinks from (fullWidth - baseSize - spacing) to (currentCircleSize)
+                val expandedNavWidth = fullWidth - baseSize - spacing
+                val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
+                    .coerceAtLeast(currentCircleSize)
 
+                Box(
+                    modifier = Modifier
+                        .height(currentCircleSize)
+                        .width(currentNavWidth)
+                        .align(Alignment.BottomStart)
+                ) {
+                    MorphingNavigationBar(
+                        progress = navMorphProgress.coerceIn(0f, 1f),
+                        tabs = navigationState.tabs,
+                        tabIndex = navigationState.tabIndex,
+                        onTabChange = navigationState.onTabChange,
+                        onSettingsClick = onSettingsClick,
+                        hiddenTabs = navigationState.hiddenTabs,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // --- 3. Mini Player (Slides from Top to Middle Gap) ---
+            val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
+            val expandedPlayerWidth = fullWidth
+            val currentPlayerWidth = (expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress)
+                .coerceAtLeast(playerLandingWidth * 0.9f)
+            
             Box(
                 modifier = Modifier
                     .height(currentCircleSize)
-                    .width(currentNavWidth)
-                    .align(Alignment.BottomStart)
+                    .width(currentPlayerWidth)
+                    .align(Alignment.BottomCenter)
+                    .graphicsLayer {
+                        // Slide down from top row to bottom row
+                        val travelDistance = (baseSize + spacing).toPx()
+                        translationY = -travelDistance * (1f - playerSlideProgress)
+                        
+                        // Fade out the player slightly if not active in landscape
+                        alpha = if (navigationState == null && isLandscape) 0f else 1f
+                    }
             ) {
-                MorphingNavigationBar(
-                    progress = navMorphProgress.coerceIn(0f, 1f),
-                    tabs = navigationState.tabs,
-                    tabIndex = navigationState.tabIndex,
-                    onTabChange = navigationState.onTabChange,
-                    onSettingsClick = onSettingsClick,
-                    hiddenTabs = navigationState.hiddenTabs,
+                MorphingMiniPlayer(
+                    progress = playerMorphProgress.coerceIn(0f, 1f),
+                    onClick = onPlayerClick,
                     modifier = Modifier.fillMaxSize()
+                )
+            }
+        } else {
+            // --- SUB-PAGE REFACTOR: Centered Compact Player + Radio Button ---
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = spacing) // Lift it slightly from bottom
+                    .wrapContentWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                // Fixed compact size for sub-pages
+                val compactWidth = 200.dp 
+                
+                Box(
+                    modifier = Modifier
+                        .height(baseSize)
+                        .width(compactWidth)
+                ) {
+                    MorphingMiniPlayer(
+                        progress = 1f, // Always compact
+                        onClick = onPlayerClick,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                
+                RadioCircleButton(
+                    modifier = Modifier.size(baseSize),
+                    onClick = { radioAction?.invoke() }
                 )
             }
         }
 
-        // --- 3. Mini Player (Slides from Top to Middle Gap) ---
-        val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
-        val expandedPlayerWidth = fullWidth
-        val currentPlayerWidth = (expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress)
-            .coerceAtLeast(playerLandingWidth * 0.9f)
-        
-        Box(
-            modifier = Modifier
-                .height(currentCircleSize)
-                .width(currentPlayerWidth)
-                .align(Alignment.BottomCenter)
-                .graphicsLayer {
-                    // Slide down from top row to bottom row
-                    val travelDistance = (baseSize + spacing).toPx()
-                    translationY = -travelDistance * (1f - playerSlideProgress)
-                    
-                    // Fade out the player slightly if not active in landscape
-                    alpha = if (navigationState == null && isLandscape) 0f else 1f
-                }
-        ) {
-            MorphingMiniPlayer(
-                progress = playerMorphProgress.coerceIn(0f, 1f),
-                onClick = onPlayerClick,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+
     }
+
 }

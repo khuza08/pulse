@@ -229,15 +229,8 @@ fun BuiltInPlaylistSongs(
         }
 
         FloatingActionsContainerWithScrollToTop(
-            lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
-            onClick = {
-                if (songs.isEmpty()) return@FloatingActionsContainerWithScrollToTop
-                binder?.stopRadio()
-                binder?.player?.forcePlayFromBeginning(
-                    songs.shuffled().map(Song::asMediaItem)
-                )
-            }
+            lazyListState = lazyListState
         )
     }
 }
+

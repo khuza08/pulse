@@ -137,18 +137,5 @@ fun AlbumSongs(
                 }
             }
         }
-
-        FloatingActionsContainerWithScrollToTop(
-            lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
-            onClick = {
-                if (songs.isNotEmpty()) {
-                    binder?.stopRadio()
-                    binder?.player?.forcePlayFromBeginning(
-                        songs.shuffled().map(Song::asMediaItem)
-                    )
-                }
-            }
-        )
     }
 }

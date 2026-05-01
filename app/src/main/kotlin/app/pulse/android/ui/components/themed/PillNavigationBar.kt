@@ -369,3 +369,28 @@ fun CollapsedNavigationCircle(
         )
     }
 }
+
+@Composable
+fun RadioCircleButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val (colorPalette) = LocalAppearance.current
+    Box(
+        modifier = modifier
+            .shadow(elevation = 12.dp, shape = CircleShape)
+            .background(colorPalette.background1, CircleShape)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Image(
+            painter = painterResource(R.drawable.radio),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(colorPalette.text),
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
