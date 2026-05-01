@@ -114,7 +114,7 @@ jobs:
       - name: Send FCM Update Notification
         if: success()
         run: |
-          pip install google-auth
+          pip install google-auth requests
           python3 << 'PYEOF'
           import google.auth.transport.requests
           from google.oauth2 import service_account
