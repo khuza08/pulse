@@ -153,20 +153,33 @@ fun MorphingDock(
             }
         }
 
-        // --- 3. Radio Button (Sub-page UI) ---
+        // --- 3. Mini Player & Radio Shared Logic ---
+        val targetCompactWidth = 240.dp
+        val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
+        val expandedPlayerWidth = fullWidth
+        
+        val currentPlayerWidth = if (p < 1f) {
+            expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress
+        } else {
+            val entryProgress = (p - 1f) / 1f
+            playerLandingWidth + (targetCompactWidth - playerLandingWidth) * entryProgress
+        }
+
+        // --- 4. Radio Button (Sub-page UI) ---
         Box(
             modifier = Modifier
                 .size(currentCircleSize)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
-                    // Positioned at the end, shifts slightly during slide
-                    val currentPlayerWidth = 240.dp // End state width
-                    val centerOffset = (currentPlayerWidth / 2 + spacing / 2 + currentCircleSize / 2).toPx()
-                    translationX = centerOffset
+                    // Shift right to make room for player, ensuring the pair is centered
+                    translationX = (currentPlayerWidth / 2 + spacing / 2).toPx() * radioShowFactor
                     
                     alpha = radioShowFactor
                     scaleX = radioShowFactor
                     scaleY = radioShowFactor
+                    
+                    val liftDistance = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
+                    translationY = -liftDistance + commonDip // Align with player lift + unified wobble
                 }
         ) {
             RadioCircleButton(
@@ -175,21 +188,7 @@ fun MorphingDock(
             )
         }
 
-        // --- 4. Mini Player (Home -> Sub-page) ---
-        val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
-        val expandedPlayerWidth = fullWidth
-        
-        // Continuous width calculation:
-        // 0.0 -> 1.0: fullWidth -> playerLandingWidth
-        // 1.0 -> 2.0: playerLandingWidth -> 240.dp (compact width)
-        val targetCompactWidth = 240.dp
-        val currentPlayerWidth = if (p < 1f) {
-            expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress
-        } else {
-            val entryProgress = (p - 1f) / 1f
-            playerLandingWidth + (targetCompactWidth - playerLandingWidth) * entryProgress
-        }
-        
+        // --- 5. Mini Player (Home -> Sub-page) ---
         Box(
             modifier = Modifier
                 .height(currentCircleSize)
@@ -202,7 +201,7 @@ fun MorphingDock(
                     // The 8dp lift from the old sub-page Row structure
                     val liftDistance = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
                     
-                    translationY = -travelDistance * (1f - playerSlideProgress) - liftDistance
+                    translationY = -travelDistance * (1f - playerSlideProgress) - liftDistance + commonDip
                     
                     // Shift left slightly to make room for radio button
                     translationX = -(currentCircleSize / 2 + spacing / 2).toPx() * radioShowFactor
