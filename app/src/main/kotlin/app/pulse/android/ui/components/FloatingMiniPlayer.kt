@@ -248,10 +248,10 @@ fun MorphingMiniPlayer(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = (8.dp * (1f - progress)).coerceAtLeast(4.dp)),
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val thumbSize = (Dimensions.items.collapsedPlayerHeight * (1f - 0.4f * progress))
+            val thumbSize = (Dimensions.items.collapsedPlayerHeight * (1f - 0.45f * progress))
 
             AsyncImage(
                 model = activeMediaItem?.mediaMetadata?.artworkUri?.thumbnail(Dimensions.thumbnails.song.px),
@@ -259,25 +259,21 @@ fun MorphingMiniPlayer(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(thumbSize)
-                    .padding(4.dp)
+                    .padding(2.dp)
                     .clip(CircleShape)
                     .background(colorPalette.background0)
             )
 
-            Spacer(modifier = Modifier.width((12.dp * (1f - progress)).coerceAtLeast(6.dp)))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                // Dynamically scale text size based on progress
-                val titleFontSize = typography.xs.fontSize * (1f - 0.1f * progress)
-                
                 BasicText(
                     text = metadata?.title ?: stringResource(R.string.no_music_played),
                     style = typography.xs.semiBold.copy(
-                        color = colorPalette.text,
-                        fontSize = titleFontSize
+                        color = colorPalette.text
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

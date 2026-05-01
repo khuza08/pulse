@@ -154,7 +154,8 @@ internal fun PillNavigationItem(
     Column(
     modifier = Modifier
         .width(72.dp)
-        .height(Dimensions.items.collapsedPlayerHeight - 8.dp)
+        .fillMaxHeight()
+        .padding(vertical = 4.dp)
         .clip(CircleShape)
         .background(backgroundColor)
         .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
@@ -229,7 +230,6 @@ fun FloatingSearchButton(
     val (colorPalette) = LocalAppearance.current
     Box(
         modifier = modifier
-            .size(Dimensions.items.collapsedPlayerHeight)
             .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape)
             .clip(CircleShape)
@@ -268,7 +268,6 @@ fun MorphingNavigationBar(
 
     Box(
         modifier = modifier
-            .height(Dimensions.items.collapsedPlayerHeight)
             .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape)
             .clip(CircleShape)
