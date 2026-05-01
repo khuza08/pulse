@@ -26,13 +26,13 @@ fun MorphingDock(
     // We synchronize all phases to reach 1.0 at progress 1.0.
     
     // Phase 1 (Starts 0.0): NavBar shrinks Pill -> Circle
-    val phase1 = (progress / 1.0f).coerceAtLeast(0f)
+    val navMorphProgress = (progress / 1.0f).coerceAtLeast(0f)
     
     // Phase 2 (Starts 0.2): MiniPlayer shrinks Full -> Compact
-    val phase2 = ((progress - 0.2f) / 0.8f).coerceAtLeast(0f)
+    val playerMorphProgress = ((progress - 0.2f) / 0.8f).coerceAtLeast(0f)
     
     // Phase 3 (Starts 0.5): MiniPlayer moves Top -> Bottom row
-    val phase3 = ((progress - 0.5f) / 0.5f).coerceAtLeast(0f)
+    val playerSlideProgress = ((progress - 0.5f) / 0.5f).coerceAtLeast(0f)
 
     BoxWithConstraints(
         modifier = modifier
@@ -58,9 +58,8 @@ fun MorphingDock(
         // --- 2. Navigation Bar (Stays at Bottom-Left, Morphs Width) ---
         if (!isLandscape && navigationState != null) {
             // Calculate the width: shrinks from (fullWidth - baseSize - spacing) to (currentCircleSize)
-            // Note: We use baseSize for the expanded state width to maintain consistent spacing
             val expandedNavWidth = fullWidth - baseSize - spacing
-            val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * phase1)
+            val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
                 .coerceAtLeast(currentCircleSize)
 
             Box(
@@ -70,7 +69,7 @@ fun MorphingDock(
                     .align(Alignment.BottomStart)
             ) {
                 MorphingNavigationBar(
-                    progress = phase1.coerceIn(0f, 1f),
+                    progress = navMorphProgress.coerceIn(0f, 1f),
                     tabs = navigationState.tabs,
                     tabIndex = navigationState.tabIndex,
                     onTabChange = navigationState.onTabChange,
@@ -82,13 +81,9 @@ fun MorphingDock(
         }
 
         // --- 3. Mini Player (Slides from Top to Middle Gap) ---
-        // Landing zone is between the NavCircle and SearchButton
-        // As currentCircleSize shrinks, the landing width grows
         val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
-        
-        // Expanded width is the full available width
         val expandedPlayerWidth = fullWidth
-        val currentPlayerWidth = (expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * phase2)
+        val currentPlayerWidth = (expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress)
             .coerceAtLeast(playerLandingWidth * 0.9f)
         
         Box(
@@ -98,26 +93,18 @@ fun MorphingDock(
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
                     // Slide down from top row to bottom row
-                    // We use baseSize here for travel distance to ensure it lands correctly
                     val travelDistance = (baseSize + spacing).toPx()
-                    translationY = -travelDistance * (1f - phase3)
+                    translationY = -travelDistance * (1f - playerSlideProgress)
                     
-                    // Fade out the player slightly if not active
+                    // Fade out the player slightly if not active in landscape
                     alpha = if (navigationState == null && isLandscape) 0f else 1f
                 }
         ) {
             MorphingMiniPlayer(
-                progress = phase2.coerceIn(0f, 1f),
+                progress = playerMorphProgress.coerceIn(0f, 1f),
                 onClick = onPlayerClick,
                 modifier = Modifier.fillMaxSize()
             )
-        }
-
-        // Handle Landscape / Null state search fallback
-        if (isLandscape || navigationState == null) {
-            Box(modifier = Modifier.fillMaxWidth().align(Alignment.BottomEnd)) {
-                FloatingSearchButton(onClick = onSearchClick)
-            }
         }
     }
 }
