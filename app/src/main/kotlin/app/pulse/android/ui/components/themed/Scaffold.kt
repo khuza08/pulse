@@ -29,6 +29,22 @@ import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.utils.isLandscape
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+import app.pulse.android.utils.color
+import app.pulse.android.utils.semiBold
 
 data class NavigationState(
     val tabs: ImmutableList<Tab>,
@@ -62,6 +78,7 @@ fun Scaffold(
     tabColumnContent: TabsBuilder.() -> Unit,
     modifier: Modifier = Modifier,
     tabsEditingTitle: String = stringResource(R.string.tabs),
+    isGlobalNav: Boolean = false,
     content: @Composable AnimatedVisibilityScope.(Int) -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -70,16 +87,18 @@ fun Scaffold(
     val isLandscape = isLandscape
     val globalNavigationState = LocalNavigationState.current
 
-    DisposableEffect(tabs, tabIndex, onTabChange, hiddenTabs) {
-        val previousState = globalNavigationState.value
-        globalNavigationState.value = NavigationState(
-            tabs = tabs,
-            tabIndex = tabIndex,
-            onTabChange = onTabChange,
-            hiddenTabs = hiddenTabs
-        )
-        onDispose {
-            globalNavigationState.value = previousState
+    if (isGlobalNav) {
+        DisposableEffect(tabs, tabIndex, onTabChange, hiddenTabs) {
+            val previousState = globalNavigationState.value
+            globalNavigationState.value = NavigationState(
+                tabs = tabs,
+                tabIndex = tabIndex,
+                onTabChange = onTabChange,
+                hiddenTabs = hiddenTabs
+            )
+            onDispose {
+                globalNavigationState.value = previousState
+            }
         }
     }
 
@@ -105,26 +124,57 @@ fun Scaffold(
                     content = tabColumnContent
                 )
             }
+            Column(modifier = Modifier.weight(1f)) {
+                if (!isLandscape && !isGlobalNav) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                    ) {
+                        val visibleTabs = tabs.filter { it.key !in hiddenTabs }
+                        itemsIndexed(visibleTabs) { index, tab ->
+                            val selected = tabIndex == index
+                            val bgColor = if (selected) colorPalette.text else colorPalette.background1
+                            val textColor = if (selected) colorPalette.background0 else colorPalette.text
+                            
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(bgColor)
+                                    .clickable { onTabChange(index) }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                BasicText(
+                                    text = tab.title(),
+                                    style = LocalAppearance.current.typography.s.semiBold.color(textColor)
+                                )
+                            }
+                        }
+                    }
+                }
 
-            AnimatedContent(
-                targetState = tabIndex,
-                modifier = Modifier.weight(1f),
-                transitionSpec = {
-                    val slideDirection = if (targetState > initialState) Up else Down
-                    val animationSpec = spring(
-                        dampingRatio = 0.9f,
-                        stiffness = Spring.StiffnessLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    )
+                AnimatedContent(
+                    targetState = tabIndex,
+                    modifier = Modifier.weight(1f),
+                    transitionSpec = {
+                        val slideDirection = if (targetState > initialState) Up else Down
+                        val animationSpec = spring(
+                            dampingRatio = 0.9f,
+                            stiffness = Spring.StiffnessLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        )
 
-                    ContentTransform(
-                        targetContentEnter = slideIntoContainer(slideDirection, animationSpec),
-                        initialContentExit = slideOutOfContainer(slideDirection, animationSpec),
-                        sizeTransform = null
-                    )
-                },
-                content = content,
-                label = ""
-            )
+                        ContentTransform(
+                            targetContentEnter = slideIntoContainer(slideDirection, animationSpec),
+                            initialContentExit = slideOutOfContainer(slideDirection, animationSpec),
+                            sizeTransform = null
+                        )
+                    },
+                    content = content,
+                    label = ""
+                )
+            }
         }
 }

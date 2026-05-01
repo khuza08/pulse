@@ -64,6 +64,7 @@ fun HomeScreen() {
                 key = "home",
                 topIconButtonId = R.drawable.settings,
                 onTopIconButtonClick = { settingsRoute() },
+                isGlobalNav = true,
                 tabIndex = UIStatePreferences.homeScreenTabIndex,
                 onTabChange = { UIStatePreferences.homeScreenTabIndex = it },
                 tabColumnContent = {
