@@ -23,110 +23,112 @@ fun MorphingDock(
     modifier: Modifier = Modifier
 ) {
     val spacing = 8.dp
-    
-    // Smooth sub-progress calculation with Elastic Synchronized Landing
-    // We synchronize all phases to reach 1.0 at progress 1.0.
-    
+
     val isSubPage = navigationState == null
     val radioAction = LocalRadioAction.current
     val density = LocalDensity.current
-    
-    // --- 1. State for Sub-page Transition ---
+
     val animatable = remember { Animatable(progress) }
-    
+
     // Keep the last navigation state so the bar can fade out instead of vanishing
     val lastNavState = remember { mutableStateOf(navigationState) }
     LaunchedEffect(navigationState) {
         if (navigationState != null) lastNavState.value = navigationState
     }
 
-    // Synchronize animatable with scroll progress while on home page
-    LaunchedEffect(progress, isSubPage) {
+    // ── Single effect — no frame gap between snap and spring ─────────────────
+    //
+    // The original had two separate LaunchedEffect blocks keyed on
+    // (progress, isSubPage) and (isSubPage) respectively. When isSubPage flips,
+    // Compose restarts BOTH effects in the same frame. The snap in the first
+    // effect and the spring in the second effect ran in separate coroutine
+    // dispatches, leaving a 1-frame window where animatable.value was stale.
+    //
+    // One effect keyed on (isSubPage, progress) handles both cases in a single
+    // coroutine body — the snapTo and animateTo are sequential with no gap.
+    LaunchedEffect(isSubPage, progress) {
         if (!isSubPage) {
+            // Home page: track scroll exactly.
+            // stop() cancels any in-flight spring before snapping.
+            animatable.stop()
             animatable.snapTo(progress)
-        }
-    }
-
-    LaunchedEffect(isSubPage) {
-        if (isSubPage) {
-            // Already snapped by the progress sync effect
-            animatable.animateTo(
-                targetValue = 2f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy, // Subtle settle instead of wild wobble
-                    stiffness = Spring.StiffnessLow // Faster but still smooth
+        } else {
+            // Sub-page entry: clamp to 1.0 first so p never dips below the
+            // threshold, then spring to 2.0.
+            if (animatable.value < 1f) animatable.snapTo(1f)
+            if (animatable.value < 2f) {
+                animatable.animateTo(
+                    targetValue = 2f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
                 )
-            )
+            }
         }
     }
 
-    // Capture the last valid progress from the home page to ensure a stable handoff.
-    // This prevents flashes if the 'progress' prop resets to 0.0 during navigation.
-    var lastValidHomeProgress by remember { mutableFloatStateOf(0f) }
-    if (!isSubPage) {
-        lastValidHomeProgress = progress
+    // Capture the last valid progress from the home page to ensure a stable
+    // handoff. Prevents flashes if `progress` resets to 0.0 during navigation.
+    // Written via SideEffect so it never mutates state during composition.
+    val lastValidHomeProgress = remember { mutableFloatStateOf(0f) }
+    SideEffect {
+        if (!isSubPage) lastValidHomeProgress.floatValue = progress
     }
 
     // Single source of truth for the entire timeline.
-    val p = if (!isSubPage) progress else animatable.value.coerceAtLeast(lastValidHomeProgress)
+    val p = if (!isSubPage) progress
+            else animatable.value.coerceAtLeast(lastValidHomeProgress.floatValue)
 
-    // --- 2. Phase 1 (Home Morph: 0.0 -> 1.0) ---
-    // factors are allowed to exceed 1.0 for "wobble" overscroll on Home
+    // ── Phase 1 (Home Morph: 0.0 → 1.0) ─────────────────────────────────────
+    // homeP is allowed to exceed 1.0 on home for overscroll wobble.
+    // On sub-page it is clamped so overscroll is always 0.
     val homeP = if (!isSubPage) p else p.coerceAtMost(1f)
-    
-    // Widened stable landing zone (0.90) for maximum reliability
-    val navMorphProgress = (homeP / 0.90f).coerceIn(0f, 1f)
+
+    val navMorphProgress    = (homeP / 0.90f).coerceIn(0f, 1f)
     val playerMorphProgress = ((homeP - 0.2f) / 0.7f).coerceIn(0f, 1f)
     val playerSlideProgress = ((homeP - 0.5f) / 0.4f).coerceIn(0f, 1f)
 
-    // --- 3. Phase 2 (Sub-page Entry: 1.0 -> 2.0) ---
-    // 1.0 -> 1.5: Home UI (Nav, Search) fades out
-    val navHideFactor = ((p - 1f) / 0.5f).coerceIn(0f, 1f)
-    // 1.5 -> 2.0: Sub-page UI (Radio) fades in
+    // ── Phase 2 (Sub-page Entry: 1.0 → 2.0) ──────────────────────────────────
+    val navHideFactor   = ((p - 1f) / 0.5f).coerceIn(0f, 1f)
     val radioShowFactor = ((p - 1.5f) / 0.5f).coerceIn(0f, 1f)
 
     BoxWithConstraints(
         modifier = modifier
             .padding(horizontal = 24.dp, vertical = 24.dp)
             .fillMaxWidth()
-            .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing + 80.dp) // Maximum headroom
+            .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing + 80.dp)
     ) {
         val fullWidth = maxWidth
-        val baseSize = Dimensions.items.collapsedPlayerHeight
-        
-        // --- Sizing Logic ---
-        // 1. Structural Morph: Shrink to 80% of baseSize at p=1.0
-        val morphFactor = homeP.coerceIn(0f, 1f)
-        val targetSize = baseSize * (1f - 0.2f * morphFactor)
-        
-        // 2. Overscroll Wobble: Elastic squeeze when pulling past 1.0
-        val overscroll = (homeP - 1f).coerceAtLeast(0f)
+        val baseSize  = Dimensions.items.collapsedPlayerHeight
+
+        // Structural morph: shrink circle to 80% of baseSize at p=1.0
+        val morphFactor       = homeP.coerceIn(0f, 1f)
+        val targetSize        = baseSize * (1f - 0.2f * morphFactor)
+        val overscroll        = (homeP - 1f).coerceAtLeast(0f)
         val currentCircleSize = (targetSize - (baseSize * 0.4f * overscroll)).coerceAtLeast(baseSize * 0.6f)
-        
-        val commonDip = with(density) { (16.dp.toPx() * overscroll) } // Unified wobble dip
-        
+        val commonDip         = with(density) { 16.dp.toPx() * overscroll }
+
+        // ── 1. Search button ─────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .size(currentCircleSize)
                 .align(Alignment.BottomEnd)
                 .graphicsLayer {
-                    alpha = 1f - navHideFactor
-                    scaleX = 1f - navHideFactor
-                    scaleY = 1f - navHideFactor
-                    translationY = commonDip // Unified wobble
+                    alpha        = 1f - navHideFactor
+                    scaleX       = 1f - navHideFactor
+                    scaleY       = 1f - navHideFactor
+                    translationY = commonDip
                 }
         ) {
-            FloatingSearchButton(
-                onClick = onSearchClick,
-                modifier = Modifier.fillMaxSize()
-            )
+            FloatingSearchButton(onClick = onSearchClick, modifier = Modifier.fillMaxSize())
         }
 
-        // --- 2. Navigation Bar (Home UI) ---
+        // ── 2. Navigation bar ─────────────────────────────────────────────────
         val currentNavState = lastNavState.value
         if (!isLandscape && currentNavState != null && (1f - navHideFactor) > 0f) {
             val expandedNavWidth = fullWidth - baseSize - spacing
-            val currentNavWidth = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
+            val currentNavWidth  = (expandedNavWidth + (currentCircleSize - expandedNavWidth) * navMorphProgress)
                 .coerceAtLeast(currentCircleSize)
 
             Box(
@@ -135,29 +137,29 @@ fun MorphingDock(
                     .width(currentNavWidth)
                     .align(Alignment.BottomStart)
                     .graphicsLayer {
-                        alpha = 1f - navHideFactor
-                        scaleX = 1f - navHideFactor
-                        scaleY = 1f - navHideFactor
-                        translationY = commonDip // Unified wobble
+                        alpha        = 1f - navHideFactor
+                        scaleX       = 1f - navHideFactor
+                        scaleY       = 1f - navHideFactor
+                        translationY = commonDip
                     }
             ) {
                 MorphingNavigationBar(
-                    progress = navMorphProgress,
-                    tabs = currentNavState.tabs,
-                    tabIndex = currentNavState.tabIndex,
-                    onTabChange = currentNavState.onTabChange,
+                    progress        = navMorphProgress,
+                    tabs            = currentNavState.tabs,
+                    tabIndex        = currentNavState.tabIndex,
+                    onTabChange     = currentNavState.onTabChange,
                     onSettingsClick = onSettingsClick,
-                    hiddenTabs = currentNavState.hiddenTabs,
-                    modifier = Modifier.fillMaxSize()
+                    hiddenTabs      = currentNavState.hiddenTabs,
+                    modifier        = Modifier.fillMaxSize()
                 )
             }
         }
 
-        // --- 3. Mini Player & Radio Shared Logic ---
-        val targetCompactWidth = 240.dp
-        val playerLandingWidth = fullWidth - (currentCircleSize * 2) - (spacing * 2)
+        // ── 3. Player & radio shared sizing ──────────────────────────────────
+        val targetCompactWidth  = 240.dp
+        val playerLandingWidth  = fullWidth - (currentCircleSize * 2) - (spacing * 2)
         val expandedPlayerWidth = fullWidth
-        
+
         val currentPlayerWidth = if (p < 1f) {
             expandedPlayerWidth + (playerLandingWidth - expandedPlayerWidth) * playerMorphProgress
         } else {
@@ -165,64 +167,51 @@ fun MorphingDock(
             playerLandingWidth + (targetCompactWidth - playerLandingWidth) * entryProgress
         }
 
-        // --- 4. Radio Button (Sub-page UI) ---
+        // ── 4. Radio button ───────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .size(currentCircleSize)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
-                    // Shift right to make room for player, ensuring the pair is centered
                     translationX = (currentPlayerWidth / 2 + spacing / 2).toPx() * radioShowFactor
-                    
-                    alpha = radioShowFactor
-                    scaleX = radioShowFactor
-                    scaleY = radioShowFactor
-                    
+                    alpha        = radioShowFactor
+                    scaleX       = radioShowFactor
+                    scaleY       = radioShowFactor
                     val liftDistance = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
-                    translationY = -liftDistance + commonDip // Align with player lift + unified wobble
+                    translationY = -liftDistance + commonDip
                 }
         ) {
             RadioCircleButton(
                 modifier = Modifier.fillMaxSize(),
-                onClick = { radioAction?.invoke() }
+                onClick  = { radioAction?.invoke() }
             )
         }
 
-        // --- 5. Mini Player (Home -> Sub-page) ---
+        // ── 5. Mini player ────────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .height(currentCircleSize)
                 .width(currentPlayerWidth)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer {
-                    // Slide down from top row to bottom row
                     val travelDistance = (baseSize + spacing).toPx()
-                    
-                    // The 8dp lift from the old sub-page Row structure
-                    val liftDistance = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
-                    
+                    val liftDistance   = spacing.toPx() * (p - 1f).coerceIn(0f, 1f)
                     translationY = -travelDistance * (1f - playerSlideProgress) - liftDistance + commonDip
-                    
-                    // Shift left slightly to make room for radio button
                     translationX = -(currentCircleSize / 2 + spacing / 2).toPx() * radioShowFactor
                 }
         ) {
             if (p < 1f) {
                 MorphingMiniPlayer(
                     progress = playerMorphProgress,
-                    onClick = onPlayerClick,
+                    onClick  = onPlayerClick,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
                 CompactMiniPlayer(
-                    onClick = onPlayerClick,
+                    onClick  = onPlayerClick,
                     modifier = Modifier.fillMaxSize()
                 )
             }
         }
-
-
-
     }
-
 }
