@@ -107,13 +107,13 @@ fun SearchScreen(
                     AnimatedVisibility(
                         visible = textFieldValue.text.isEmpty(),
                         enter = fadeIn(tween(300)),
-                        exit = fadeOut(tween(300)),
-                        modifier = Modifier.align(Alignment.CenterEnd)
+                        exit = fadeOut(tween(200)),
+                        modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         BasicText(
                             text = stringResource(R.string.search_placeholder),
                             maxLines = 1,
-                            style = typography.xxl.secondary
+                            style = typography.l.secondary.copy(color = colorPalette.textSecondary.copy(alpha = 0.6f))
                         )
                     }
                     innerTextField()
@@ -140,18 +140,16 @@ fun SearchScreen(
                 Column(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        HeaderIconButton(
-                            icon = R.drawable.chevron_back,
-                            onClick = pop
-                        )
-                        
-                        Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                        
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 18.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally)
+                    ) {
                         BasicTextField(
                             value = textFieldValue,
                             onValueChange = onTextFieldValueChanged,
-                            textStyle = typography.xxl.medium.align(TextAlign.End),
+                            textStyle = typography.l.medium.align(TextAlign.Start),
                             singleLine = true,
                             maxLines = 1,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -160,46 +158,38 @@ fun SearchScreen(
                                     if (textFieldValue.text.isNotEmpty()) onSearch(textFieldValue.text)
                                 }
                             ),
-                            cursorBrush = SolidColor(colorPalette.text),
+                            cursorBrush = SolidColor(colorPalette.text.copy(alpha = 0.4f)),
                             decorationBox = decorationBox,
-                            modifier = Modifier.weight(1f).focusRequester(focusRequester)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
                         )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 4.dp)
-                            .heightIn(min = 48.dp)
-                    ) {
-                        if (tabIndex == 0) {
-                            val playlistId = remember(textFieldValue.text) {
-                                runCatching {
-                                    Url(textFieldValue.text).takeIf {
-                                        it.host.endsWith("youtube.com", ignoreCase = true) &&
-                                            it.segments.lastOrNull()?.equals("playlist", ignoreCase = true) == true
-                                    }?.parameters?.get("list")
-                                }.getOrNull()
-                            }
-                            if (playlistId != null) {
-                                val isAlbum = playlistId.startsWith("OLAK5uy_")
-                                SecondaryTextButton(
-                                    text = if (isAlbum) stringResource(R.string.view_album) else stringResource(R.string.view_playlist),
-                                    onClick = { onViewPlaylist(textFieldValue.text) }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.weight(1f))
 
                         if (textFieldValue.text.isNotEmpty()) {
-                            SecondaryTextButton(
-                                text = stringResource(R.string.clear),
-                                onClick = { onTextFieldValueChanged(TextFieldValue()) }
+                            HeaderIconButton(
+                                icon = R.drawable.close,
+                                onClick = { onTextFieldValueChanged(TextFieldValue()) },
+                                modifier = Modifier.align(Alignment.CenterEnd)
                             )
                         }
+                    }
+
+                    val playlistId = remember(textFieldValue.text) {
+                        runCatching {
+                            Url(textFieldValue.text).takeIf {
+                                it.host.endsWith("youtube.com", ignoreCase = true) &&
+                                    it.segments.lastOrNull()?.equals("playlist", ignoreCase = true) == true
+                            }?.parameters?.get("list")
+                        }.getOrNull()
+                    }
+
+                    if (tabIndex == 0 && playlistId != null) {
+                        val isAlbum = playlistId.startsWith("OLAK5uy_")
+                        SecondaryTextButton(
+                            text = if (isAlbum) stringResource(R.string.view_album) else stringResource(R.string.view_playlist),
+                            onClick = { onViewPlaylist(textFieldValue.text) },
+                            modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally)
+                        )
                     }
                 }
 
