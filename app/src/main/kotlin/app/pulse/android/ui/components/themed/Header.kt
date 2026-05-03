@@ -3,6 +3,7 @@ package app.pulse.android.ui.components.themed
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,31 +48,31 @@ fun Header(
     titleContent: @Composable () -> Unit,
     actionsContent: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier
-) = Box(
-    contentAlignment = Alignment.CenterStart,
+) = Column(
+    verticalArrangement = Arrangement.spacedBy(8.dp),
     modifier = modifier
         .padding(horizontal = 16.dp)
-        .height(Dimensions.items.headerHeight)
+        .padding(top = 16.dp, bottom = 8.dp)
         .fillMaxWidth()
 ) {
-    titleContent()
+    Box(modifier = Modifier.fillMaxWidth()) {
+        titleContent()
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .align(Alignment.CenterEnd)
-            .heightIn(min = 48.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        modifier = Modifier.fillMaxWidth(),
         content = actionsContent
     )
 }
 
 @Composable
-fun HeaderPlaceholder(modifier: Modifier = Modifier) = Box(
-    contentAlignment = Alignment.CenterStart,
+fun HeaderPlaceholder(modifier: Modifier = Modifier) = Column(
+    verticalArrangement = Arrangement.spacedBy(8.dp),
     modifier = modifier
         .padding(horizontal = 16.dp)
-        .height(Dimensions.items.headerHeight)
+        .padding(top = 16.dp, bottom = 8.dp)
         .fillMaxWidth()
 ) {
     val (colorPalette, typography) = LocalAppearance.current
