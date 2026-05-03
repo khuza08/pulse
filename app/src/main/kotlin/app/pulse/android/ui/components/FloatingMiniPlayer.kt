@@ -132,7 +132,6 @@ fun FloatingMiniPlayer(
 
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
             .clickable(
@@ -237,7 +236,6 @@ fun MorphingMiniPlayer(
 
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
             .clickable(
@@ -360,7 +358,6 @@ fun CompactMiniPlayer(
 
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(colorPalette.background1)
             .clickable(

@@ -101,7 +101,6 @@ fun PillNavigationBar(
     Box(
         modifier = modifier
             .height(Dimensions.items.collapsedPlayerHeight)
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape),
         contentAlignment = Alignment.Center
     ) {
@@ -230,7 +229,6 @@ fun FloatingSearchButton(
     val (colorPalette) = LocalAppearance.current
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape)
             .clip(CircleShape)
             .clickable(onClick = onClick),
@@ -268,7 +266,6 @@ fun MorphingNavigationBar(
 
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape)
             .clip(CircleShape)
             .clickable(
@@ -355,7 +352,6 @@ fun CollapsedNavigationCircle(
     Box(
         modifier = modifier
             .size(app.pulse.core.ui.Dimensions.items.collapsedPlayerHeight)
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .background(LocalAppearance.current.colorPalette.background1, CircleShape)
             .clip(CircleShape)
             .clickable { dockScrolled.value = false },
@@ -377,7 +373,6 @@ fun RadioCircleButton(
     val (colorPalette) = LocalAppearance.current
     Box(
         modifier = modifier
-            .shadow(elevation = 12.dp, shape = CircleShape)
             .background(colorPalette.background1, CircleShape)
             .clip(CircleShape)
             .clickable(onClick = onClick),

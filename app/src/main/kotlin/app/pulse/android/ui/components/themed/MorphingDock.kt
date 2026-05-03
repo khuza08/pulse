@@ -2,6 +2,7 @@ package app.pulse.android.ui.components.themed
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,6 +12,9 @@ import androidx.compose.ui.unit.dp
 import app.pulse.android.ui.components.MorphingMiniPlayer
 import app.pulse.android.ui.components.CompactMiniPlayer
 import app.pulse.core.ui.Dimensions
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import app.pulse.core.ui.LocalAppearance
 
 @Composable
 fun MorphingDock(
@@ -27,6 +31,7 @@ fun MorphingDock(
     val isSubPage = navigationState == null
     val radioAction = LocalRadioAction.current
     val density = LocalDensity.current
+    val (colorPalette) = LocalAppearance.current
 
     val animatable = remember { Animatable(progress) }
 
@@ -104,6 +109,15 @@ fun MorphingDock(
 
     BoxWithConstraints(
         modifier = modifier
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        colorPalette.background0.copy(alpha = 0.8f),
+                        colorPalette.background0
+                    )
+                )
+            )
             .padding(horizontal = 24.dp, vertical = 24.dp)
             .fillMaxWidth()
             .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing + 80.dp)
