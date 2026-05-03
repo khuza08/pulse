@@ -22,7 +22,6 @@ fun MorphingDock(
     navigationState: NavigationState?,
     onPlayerClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     isLandscape: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -171,7 +170,6 @@ fun MorphingDock(
                     tabs            = currentNavState.tabs,
                     tabIndex        = currentNavState.tabIndex,
                     onTabChange     = currentNavState.onTabChange,
-                    onSettingsClick = onSettingsClick,
                     hiddenTabs      = currentNavState.hiddenTabs,
                     modifier        = Modifier.fillMaxSize()
                 )

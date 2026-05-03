@@ -61,6 +61,8 @@ import app.pulse.android.ui.items.PlaylistItemPlaceholder
 import app.pulse.android.ui.items.SongItem
 import app.pulse.android.ui.items.SongItemPlaceholder
 import app.pulse.android.ui.screens.Route
+import app.pulse.android.ui.screens.settingsRoute
+import app.pulse.android.ui.components.themed.HeaderCircleIconButton
 import app.pulse.android.utils.asMediaItem
 import app.pulse.android.utils.center
 import app.pulse.android.utils.forcePlay
@@ -173,7 +175,13 @@ fun QuickPicks(
         ) {
             Header(
                 title = stringResource(R.string.quick_picks),
-                modifier = Modifier.padding(endPaddingValues)
+                modifier = Modifier.padding(endPaddingValues),
+                headerActions = {
+                    HeaderCircleIconButton(
+                        icon = R.drawable.settings,
+                        onClick = { settingsRoute.global() }
+                    )
+                }
             )
 
             relatedPageResult?.getOrNull()?.let { related ->

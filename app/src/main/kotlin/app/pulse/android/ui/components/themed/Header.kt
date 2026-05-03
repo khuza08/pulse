@@ -28,6 +28,7 @@ import kotlin.random.Random
 fun Header(
     title: String,
     modifier: Modifier = Modifier,
+    headerActions: @Composable RowScope.() -> Unit = {},
     actionsContent: @Composable RowScope.() -> Unit = {}
 ) = Header(
     modifier = modifier,
@@ -40,13 +41,15 @@ fun Header(
             )
         }
     },
+    headerActions = headerActions,
     actionsContent = actionsContent
 )
 
 @Composable
 fun Header(
     titleContent: @Composable () -> Unit,
-    actionsContent: @Composable RowScope.() -> Unit,
+    actionsContent: @Composable RowScope.() -> Unit = {},
+    headerActions: @Composable RowScope.() -> Unit = {},
     modifier: Modifier = Modifier
 ) = Column(
     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -55,8 +58,20 @@ fun Header(
         .padding(top = 16.dp, bottom = 8.dp)
         .fillMaxWidth()
 ) {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        titleContent()
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            titleContent()
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            content = headerActions
+        )
     }
 
     Row(

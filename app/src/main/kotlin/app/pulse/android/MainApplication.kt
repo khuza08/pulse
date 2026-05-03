@@ -559,10 +559,9 @@ private fun FloatingDock(
 
     app.pulse.android.ui.components.themed.MorphingDock(
         progress = progress,
-        navigationState = navigationState?.value,
+        navigationState = navigationState.value,
         onPlayerClick = onPlayerClick,
         onSearchClick = onSearchClick,
-        onSettingsClick = { settingsRoute.global() },
         isLandscape = isLandscape,
         modifier = modifier
     )

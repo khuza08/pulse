@@ -60,6 +60,8 @@ import app.pulse.android.ui.items.AlbumItem
 import app.pulse.android.ui.items.AlbumItemPlaceholder
 import app.pulse.android.ui.items.SongItem
 import app.pulse.android.ui.screens.Route
+import app.pulse.android.ui.screens.settingsRoute
+import app.pulse.android.ui.components.themed.HeaderCircleIconButton
 import app.pulse.android.utils.asMediaItem
 import app.pulse.android.utils.center
 import app.pulse.android.utils.color
@@ -136,7 +138,13 @@ fun HomeDiscovery(
         ) {
             Header(
                 title = stringResource(R.string.discover),
-                modifier = Modifier.padding(endPaddingValues)
+                modifier = Modifier.padding(endPaddingValues),
+                headerActions = {
+                    HeaderCircleIconButton(
+                        icon = R.drawable.settings,
+                        onClick = { settingsRoute.global() }
+                    )
+                }
             )
 
             discoverPage?.getOrNull()?.let { page ->

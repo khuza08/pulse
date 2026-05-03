@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -40,7 +39,6 @@ fun PillNavigationBar(
     tabs: ImmutableList<Tab>,
     tabIndex: Int,
     onTabChange: (Int) -> Unit,
-    onSettingsClick: () -> Unit,
     hiddenTabs: ImmutableList<String>,
     modifier: Modifier = Modifier
 ) {
@@ -123,10 +121,6 @@ fun PillNavigationBar(
                         labelAlpha = 1f // Always show labels in the static pill bar
                     )
                 }
-
-                item {
-                    SettingsNavigationItem(onClick = onSettingsClick, labelAlpha = 1f)
-                }
             }
         }
     }
@@ -151,69 +145,31 @@ internal fun PillNavigationItem(
     )
 
     Column(
-    modifier = Modifier
-        .width(72.dp)
-        .fillMaxHeight()
-        .padding(vertical = 4.dp)
-        .clip(CircleShape)
-        .background(backgroundColor)
-        .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally
-) {
-    Image(
-        painter = painterResource(tab.icon),
-        contentDescription = null,
-        colorFilter = ColorFilter.tint(iconColor),
-        modifier = Modifier.size(22.dp)
-    )
-
-    if (labelAlpha > 0.05f) {
-        Spacer(modifier = Modifier.height(2.dp * labelAlpha))
-        BasicText(
-            text = tab.title(),
-            style = typography.xs.semiBold.copy(
-                color = iconColor,
-                fontSize = 9.sp
-            ),           
-            modifier = Modifier.graphicsLayer { alpha = labelAlpha },
-            maxLines = 1
-        )
-    }
-}
-}
-
-@Composable
-internal fun SettingsNavigationItem(
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-    labelAlpha: Float = 0f
-) {
-    val (colorPalette, typography) = LocalAppearance.current
-    Column(
         modifier = Modifier
-            .width(60.dp)
-            .height(Dimensions.items.collapsedPlayerHeight - 8.dp)
+            .width(72.dp)
+            .fillMaxHeight()
+            .padding(vertical = 4.dp)
             .clip(CircleShape)
-            .background(colorPalette.background1)
+            .background(backgroundColor)
             .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(R.drawable.settings),
+            painter = painterResource(tab.icon),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(colorPalette.textSecondary),
+            colorFilter = ColorFilter.tint(iconColor),
             modifier = Modifier.size(22.dp)
         )
+
         if (labelAlpha > 0.05f) {
             Spacer(modifier = Modifier.height(2.dp * labelAlpha))
             BasicText(
-                text = "Settings",
+                text = tab.title(),
                 style = typography.xs.semiBold.copy(
-                    color = colorPalette.textSecondary,
+                    color = iconColor,
                     fontSize = 9.sp
-                ),
+                ),           
                 modifier = Modifier.graphicsLayer { alpha = labelAlpha },
                 maxLines = 1
             )
@@ -250,7 +206,6 @@ fun MorphingNavigationBar(
     tabs: kotlinx.collections.immutable.ImmutableList<Tab>,
     tabIndex: Int,
     onTabChange: (Int) -> Unit,
-    onSettingsClick: () -> Unit,
     hiddenTabs: kotlinx.collections.immutable.ImmutableList<String>,
     modifier: Modifier = Modifier
 ) {
@@ -279,9 +234,6 @@ fun MorphingNavigationBar(
         val lazyRowAlpha = (1f - crossfadeProgress).coerceIn(0f, 1f)
         val singleIconAlpha = crossfadeProgress.coerceIn(0f, 1f)
 
-        // We render both but control alpha via graphicsLayer. 
-        // This avoids "snapping" when the 'if' condition changes.
-        
         // 1. Full LazyRow (Rendered first, at the bottom of the stack)
         @Suppress("DEPRECATION")
         val overscrollConfig = LocalOverscrollConfiguration provides null
@@ -302,15 +254,6 @@ fun MorphingNavigationBar(
                                 tab = tab,
                                 isSelected = isSelected,
                                 onClick = { onTabChange(originalIndex) },
-                                enabled = progress < 0.2f,
-                                labelAlpha = (1f - progress * 3f).coerceIn(0f, 1f)
-                            )
-                        }
-                    }
-                    item {
-                        Box(modifier = Modifier.graphicsLayer { alpha = (1f - progress).coerceIn(0f, 1f) }) {
-                            SettingsNavigationItem(
-                                onClick = onSettingsClick,
                                 enabled = progress < 0.2f,
                                 labelAlpha = (1f - progress * 3f).coerceIn(0f, 1f)
                             )
@@ -378,7 +321,6 @@ fun RadioCircleButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-
         Image(
             painter = painterResource(R.drawable.radio),
             contentDescription = null,
@@ -387,4 +329,3 @@ fun RadioCircleButton(
         )
     }
 }
-
