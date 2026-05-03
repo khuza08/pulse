@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ fun SegmentedControl(
             .fillMaxWidth()
             .clip(RoundedCornerShape(50))
             .background(colorPalette.background1)
+            .padding(6.dp)
     ) {
         segments.forEachIndexed { index, segment ->
             val isSelected = index == selectedSegment
