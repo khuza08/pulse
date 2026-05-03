@@ -48,7 +48,7 @@ fun Header(
     actionsContent: @Composable RowScope.() -> Unit,
     modifier: Modifier = Modifier
 ) = Box(
-    contentAlignment = Alignment.CenterEnd,
+    contentAlignment = Alignment.CenterStart,
     modifier = modifier
         .padding(horizontal = 16.dp)
         .height(Dimensions.items.headerHeight)
@@ -60,7 +60,7 @@ fun Header(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
-            .align(Alignment.BottomEnd)
+            .align(Alignment.CenterEnd)
             .heightIn(min = 48.dp),
         content = actionsContent
     )
@@ -68,7 +68,7 @@ fun Header(
 
 @Composable
 fun HeaderPlaceholder(modifier: Modifier = Modifier) = Box(
-    contentAlignment = Alignment.CenterEnd,
+    contentAlignment = Alignment.CenterStart,
     modifier = modifier
         .padding(horizontal = 16.dp)
         .height(Dimensions.items.headerHeight)

@@ -44,7 +44,7 @@ inline fun FadingRow(
                 alpha = alphaRight
             )
             .horizontalScroll(scrollState),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = verticalAlignment,
         content = content
     )
