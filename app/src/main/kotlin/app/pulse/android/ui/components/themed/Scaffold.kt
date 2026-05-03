@@ -127,35 +127,6 @@ fun Scaffold(
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
-                if (!isLandscape && !isGlobalNav) {
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                    ) {
-                        val visibleTabs = tabs.filter { it.key !in hiddenTabs }
-                        itemsIndexed(visibleTabs) { index, tab ->
-                            val selected = tabIndex == index
-                            val bgColor = if (selected) colorPalette.text else colorPalette.background1
-                            val textColor = if (selected) colorPalette.background0 else colorPalette.text
-                            
-                            Box(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(bgColor)
-                                    .clickable { onTabChange(index) }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                BasicText(
-                                    text = tab.title(),
-                                    style = LocalAppearance.current.typography.s.semiBold.color(textColor)
-                                )
-                            }
-                        }
-                    }
-                }
 
                 AnimatedContent(
                     targetState = tabIndex,
