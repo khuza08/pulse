@@ -1,8 +1,8 @@
 package app.pulse.android.ui.components.themed
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Down
-import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Up
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Left
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Right
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.Spring
@@ -132,7 +132,7 @@ fun Scaffold(
                     targetState = tabIndex,
                     modifier = Modifier.weight(1f),
                     transitionSpec = {
-                        val slideDirection = if (targetState > initialState) Up else Down
+                        val slideDirection = if (targetState > initialState) Left else Right
                         val animationSpec = spring(
                             dampingRatio = 0.9f,
                             stiffness = Spring.StiffnessLow,
