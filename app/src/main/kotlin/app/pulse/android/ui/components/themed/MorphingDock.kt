@@ -30,6 +30,17 @@ fun MorphingDock(
 
     val animatable = remember { Animatable(progress) }
 
+    // Capture the last valid progress from the home page to ensure a stable
+    // handoff. Prevents flashes if `progress` resets to 0.0 during navigation.
+    // We ignore resets to 0.0 (likely navigation artifacts) if we were already scrolled.
+    // this is the work states, after many tries i fix it to remember last valid progress
+    val lastValidHomeProgress = remember { mutableFloatStateOf(0f) }
+    SideEffect {
+        if (!isSubPage && progress > 0.01f) {
+            lastValidHomeProgress.floatValue = progress
+        }
+    }
+
     // Keep the last navigation state so the bar can fade out instead of vanishing
     val lastNavState = remember { mutableStateOf(navigationState) }
     LaunchedEffect(navigationState) {
@@ -53,9 +64,14 @@ fun MorphingDock(
             animatable.stop()
             animatable.snapTo(progress)
         } else {
-            // Sub-page entry: clamp to 1.0 first so p never dips below the
-            // threshold, then spring to 2.0.
-            if (animatable.value < 1f) animatable.snapTo(1f)
+            // Sub-page entry: ensure we pick up from where we left off.
+            // We snap to at least 1.0f (compact) or the last valid scrolled progress
+            // to prevent the expansion flash (p=0).
+            val startPoint = lastValidHomeProgress.floatValue.coerceAtLeast(1f)
+            if (animatable.value < startPoint) {
+                animatable.snapTo(startPoint)
+            }
+
             if (animatable.value < 2f) {
                 animatable.animateTo(
                     targetValue = 2f,
@@ -68,13 +84,6 @@ fun MorphingDock(
         }
     }
 
-    // Capture the last valid progress from the home page to ensure a stable
-    // handoff. Prevents flashes if `progress` resets to 0.0 during navigation.
-    // Written via SideEffect so it never mutates state during composition.
-    val lastValidHomeProgress = remember { mutableFloatStateOf(0f) }
-    SideEffect {
-        if (!isSubPage) lastValidHomeProgress.floatValue = progress
-    }
 
     // Single source of truth for the entire timeline.
     val p = if (!isSubPage) progress

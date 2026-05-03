@@ -104,7 +104,9 @@ fun Scaffold(
 
     val dockScrolled = LocalDockScrolled.current
     LaunchedEffect(tabIndex) {
-        dockScrolled.value = false
+        if (isGlobalNav) {
+            dockScrolled.value = false
+        }
     }
 
     Row(
