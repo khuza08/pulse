@@ -1,7 +1,6 @@
 package app.pulse.android.ui.screens.search
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -173,6 +173,15 @@ fun SearchScreen(
                             )
                         }
                     }
+
+                    Spacer(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .padding(top = 8.dp)
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(colorPalette.textSecondary.copy(alpha = 0.2f))
+                    )
 
                     val playlistId = remember(textFieldValue.text) {
                         runCatching {
