@@ -25,11 +25,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Set up Python 3.14
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
-          allow-prereleases: true
+          python-version: '3.11'
 
       - name: Decode Release Keystore
         run: |
@@ -75,6 +74,7 @@ jobs:
           ANDROID_RELEASE_KEYSTORE: release.jks
           ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
           ANDROID_RELEASE_KEYSTORE_ALIAS: ${{ secrets.ANDROID_RELEASE_KEYSTORE_ALIAS }}
+          CHAQUOPY_PYTHON: python3
 
       - name: Rename APK for Distribution
         run: |

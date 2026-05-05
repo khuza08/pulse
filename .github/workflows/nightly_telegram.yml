@@ -73,12 +73,11 @@ jobs:
         if: steps.check_commits.outputs.run_build == 'true'
         run: chmod +x gradlew
 
-      - name: Set up Python 3.14
+      - name: Set up Python 3.11
         if: steps.check_commits.outputs.run_build == 'true'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
-          allow-prereleases: true
+          python-version: '3.11'
 
       - name: Decode Keystore
         if: steps.check_commits.outputs.run_build == 'true'
@@ -92,6 +91,7 @@ jobs:
           ANDROID_NIGHTLY_KEYSTORE: release.jks
           ANDROID_NIGHTLY_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_PASSWORD }}
           ANDROID_NIGHTLY_KEYSTORE_ALIAS: ${{ secrets.ANDROID_NIGHTLY_KEYSTORE_ALIAS }}
+          CHAQUOPY_PYTHON: python3
 
       - name: Rename APK
         if: steps.check_commits.outputs.run_build == 'true'
