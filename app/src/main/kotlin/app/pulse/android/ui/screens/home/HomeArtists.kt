@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -34,7 +35,7 @@ import app.pulse.android.R
 import app.pulse.android.models.Artist
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.items.ArtistItem
 import app.pulse.android.ui.screens.Route
@@ -73,6 +74,32 @@ fun HomeArtistList(
     val lazyGridState = rememberLazyGridState()
 
     Box {
+    CollapsingHeader(
+        title = stringResource(R.string.artists),
+        lazyGridState = lazyGridState,
+        headerActions = {
+            HeaderIconButton(
+                icon = R.drawable.text,
+                enabled = artistSortBy == ArtistSortBy.Name,
+                onClick = { artistSortBy = ArtistSortBy.Name }
+            )
+
+            HeaderIconButton(
+                icon = R.drawable.time,
+                enabled = artistSortBy == ArtistSortBy.DateAdded,
+                onClick = { artistSortBy = ArtistSortBy.DateAdded }
+            )
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            HeaderIconButton(
+                icon = R.drawable.arrow_up,
+                color = colorPalette.text,
+                onClick = { artistSortOrder = !artistSortOrder },
+                modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
+            )
+        }
+    ) {
         LazyVerticalGrid(
             state = lazyGridState,
             columns = GridCells.Adaptive(Dimensions.thumbnails.song * 2 + Dimensions.items.verticalPadding * 2),
@@ -84,33 +111,8 @@ fun HomeArtistList(
                 .background(colorPalette.background0)
                 .fillMaxSize()
         ) {
-            item(
-                key = "header",
-                contentType = 0,
-                span = { GridItemSpan(maxLineSpan) }
-            ) {
-                Header(title = stringResource(R.string.artists)) {
-                    HeaderIconButton(
-                        icon = R.drawable.text,
-                        enabled = artistSortBy == ArtistSortBy.Name,
-                        onClick = { artistSortBy = ArtistSortBy.Name }
-                    )
-
-                    HeaderIconButton(
-                        icon = R.drawable.time,
-                        enabled = artistSortBy == ArtistSortBy.DateAdded,
-                        onClick = { artistSortBy = ArtistSortBy.DateAdded }
-                    )
-
-                    Spacer(modifier = Modifier.width(2.dp))
-
-                    HeaderIconButton(
-                        icon = R.drawable.arrow_up,
-                        color = colorPalette.text,
-                        onClick = { artistSortOrder = !artistSortOrder },
-                        modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
-                    )
-                }
+            item(key = "spacer", span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
             items(items = items, key = Artist::id) { artist ->
@@ -124,8 +126,9 @@ fun HomeArtistList(
                 )
             }
         }
+    }
 
-        FloatingActionsContainerWithScrollToTop(
+    FloatingActionsContainerWithScrollToTop(
             lazyGridState = lazyGridState,
             icon = null
         )

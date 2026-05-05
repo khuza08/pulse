@@ -42,7 +42,7 @@ import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.preferences.UIStatePreferences
 import app.pulse.android.query
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.TextFieldDialog
@@ -116,6 +116,54 @@ fun HomePlaylists(
     val builtInPlaylists by BuiltInPlaylistScreen.shownPlaylistsAsState()
 
     Box {
+    CollapsingHeader(
+        title = stringResource(R.string.playlists),
+        lazyGridState = lazyGridState,
+        headerActions = {
+            SecondaryTextButton(
+                text = stringResource(R.string.new_playlist),
+                onClick = { isCreatingANewPlaylist = true }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            HeaderIconButton(
+                icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
+                onClick = {
+                    UIStatePreferences.playlistsAsGrid = !UIStatePreferences.playlistsAsGrid
+                }
+            )
+
+            VerticalDivider(modifier = Modifier.height(8.dp))
+
+            HeaderIconButton(
+                icon = R.drawable.medical,
+                enabled = playlistSortBy == PlaylistSortBy.SongCount,
+                onClick = { playlistSortBy = PlaylistSortBy.SongCount }
+            )
+
+            HeaderIconButton(
+                icon = R.drawable.text,
+                enabled = playlistSortBy == PlaylistSortBy.Name,
+                onClick = { playlistSortBy = PlaylistSortBy.Name }
+            )
+
+            HeaderIconButton(
+                icon = R.drawable.time,
+                enabled = playlistSortBy == PlaylistSortBy.DateAdded,
+                onClick = { playlistSortBy = PlaylistSortBy.DateAdded }
+            )
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            HeaderIconButton(
+                icon = R.drawable.arrow_up,
+                color = colorPalette.text,
+                onClick = { playlistSortOrder = !playlistSortOrder },
+                modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
+            )
+        }
+    ) {
         LazyVerticalGrid(
             state = lazyGridState,
             columns = if (UIStatePreferences.playlistsAsGrid)
@@ -132,51 +180,8 @@ fun HomePlaylists(
                 .fillMaxSize()
                 .background(colorPalette.background0)
         ) {
-            item(key = "header", contentType = 0, span = { GridItemSpan(maxLineSpan) }) {
-                Header(title = stringResource(R.string.playlists)) {
-                    SecondaryTextButton(
-                        text = stringResource(R.string.new_playlist),
-                        onClick = { isCreatingANewPlaylist = true }
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    HeaderIconButton(
-                        icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
-                        onClick = {
-                            UIStatePreferences.playlistsAsGrid = !UIStatePreferences.playlistsAsGrid
-                        }
-                    )
-
-                    VerticalDivider(modifier = Modifier.height(8.dp))
-
-                    HeaderIconButton(
-                        icon = R.drawable.medical,
-                        enabled = playlistSortBy == PlaylistSortBy.SongCount,
-                        onClick = { playlistSortBy = PlaylistSortBy.SongCount }
-                    )
-
-                    HeaderIconButton(
-                        icon = R.drawable.text,
-                        enabled = playlistSortBy == PlaylistSortBy.Name,
-                        onClick = { playlistSortBy = PlaylistSortBy.Name }
-                    )
-
-                    HeaderIconButton(
-                        icon = R.drawable.time,
-                        enabled = playlistSortBy == PlaylistSortBy.DateAdded,
-                        onClick = { playlistSortBy = PlaylistSortBy.DateAdded }
-                    )
-
-                    Spacer(modifier = Modifier.width(2.dp))
-
-                    HeaderIconButton(
-                        icon = R.drawable.arrow_up,
-                        color = colorPalette.text,
-                        onClick = { playlistSortOrder = !playlistSortOrder },
-                        modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
-                    )
-                }
+            item(key = "spacer", span = { GridItemSpan(maxLineSpan) }) {
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
             // TODO: clean up (also in BuiltInPlaylistScreen): icon etc. could live in BuiltInPlaylist (cleans up duplicate code mess)
@@ -292,8 +297,9 @@ fun HomePlaylists(
                     }
                 }
         }
+    }
 
-        FloatingActionsContainerWithScrollToTop(
+    FloatingActionsContainerWithScrollToTop(
             lazyGridState = lazyGridState,
             icon = null
         )

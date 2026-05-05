@@ -52,7 +52,7 @@ import app.pulse.android.ui.components.FadingRow
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.TextPlaceholder
@@ -125,27 +125,28 @@ fun HomeDiscovery(
         )
         val itemWidth = maxWidth * widthFactor
 
-        Column(
-            modifier = Modifier
-                .background(colorPalette.background0)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(
-                    windowInsets
-                        .only(WindowInsetsSides.Vertical)
-                        .asPaddingValues()
+        CollapsingHeader(
+            title = stringResource(R.string.discover),
+            scrollState = scrollState,
+            headerActions = {
+                HeaderCircleIconButton(
+                    icon = R.drawable.settings,
+                    onClick = { settingsRoute.global() }
                 )
+            }
         ) {
-            Header(
-                title = stringResource(R.string.discover),
-                modifier = Modifier.padding(endPaddingValues),
-                headerActions = {
-                    HeaderCircleIconButton(
-                        icon = R.drawable.settings,
-                        onClick = { settingsRoute.global() }
+            Column(
+                modifier = Modifier
+                    .background(colorPalette.background0)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        windowInsets
+                            .only(WindowInsetsSides.Vertical)
+                            .asPaddingValues()
                     )
-                }
-            )
+            ) {
+                Spacer(modifier = Modifier.height(80.dp))
 
             discoverPage?.getOrNull()?.let { page ->
                 if (page.moods.isNotEmpty()) {
@@ -352,14 +353,15 @@ fun HomeDiscovery(
                         )
                     }
                 }
-            }
         }
-
-        FloatingActionsContainerWithScrollToTop(
-            scrollState = scrollState,
-            icon = null
-        )
     }
+
+    FloatingActionsContainerWithScrollToTop(
+        scrollState = scrollState,
+        icon = null
+    )
+    }
+}
 }
 
 @Composable

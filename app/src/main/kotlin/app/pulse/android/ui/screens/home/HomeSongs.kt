@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -63,7 +64,7 @@ import app.pulse.android.transaction
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.themed.ConfirmationDialog
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.InHistoryMediaItemMenu
 import app.pulse.android.ui.components.themed.TextField
@@ -156,78 +157,80 @@ fun HomeSongs(
             .background(colorPalette.background0)
             .fillMaxSize()
     ) {
+    CollapsingHeader(
+        title = title,
+        lazyListState = lazyListState,
+        headerActions = {
+            var searching by rememberSaveable { mutableStateOf(false) }
+
+            AnimatedContent(
+                targetState = searching,
+                label = ""
+            ) { state ->
+                if (state) {
+                    val focusRequester = remember { FocusRequester() }
+
+                    LaunchedEffect(Unit) {
+                        focusRequester.requestFocus()
+                    }
+
+                    TextField(
+                        value = filter.orEmpty(),
+                        onValueChange = { filter = it },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            if (filter.isNullOrBlank()) filter = ""
+                            focusManager.clearFocus()
+                        }),
+                        hintText = stringResource(R.string.filter_placeholder),
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .onFocusChanged {
+                                if (!it.hasFocus) {
+                                    keyboardController?.hide()
+                                    if (filter?.isBlank() == true) {
+                                        filter = null
+                                        searching = false
+                                    }
+                                }
+                            }
+                    )
+                } else Row(verticalAlignment = Alignment.CenterVertically) {
+                    HeaderIconButton(
+                        onClick = { searching = true },
+                        icon = R.drawable.search,
+                        color = colorPalette.text
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    if (items.isNotEmpty()) BasicText(
+                        text = pluralStringResource(
+                            R.plurals.song_count_plural,
+                            items.size,
+                            items.size
+                        ),
+                        style = typography.xs.secondary.semiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            HeaderSongSortBy(sortBy, setSortBy, sortOrder, setSortOrder)
+        }
+    ) {
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
                 .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
                 .asPaddingValues()
         ) {
-            item(
-                key = "header",
-                contentType = 0
-            ) {
-                Header(title = title) {
-                    var searching by rememberSaveable { mutableStateOf(false) }
-
-                    AnimatedContent(
-                        targetState = searching,
-                        label = ""
-                    ) { state ->
-                        if (state) {
-                            val focusRequester = remember { FocusRequester() }
-
-                            LaunchedEffect(Unit) {
-                                focusRequester.requestFocus()
-                            }
-
-                            TextField(
-                                value = filter.orEmpty(),
-                                onValueChange = { filter = it },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                                keyboardActions = KeyboardActions(onSearch = {
-                                    if (filter.isNullOrBlank()) filter = ""
-                                    focusManager.clearFocus()
-                                }),
-                                hintText = stringResource(R.string.filter_placeholder),
-                                modifier = Modifier
-                                    .focusRequester(focusRequester)
-                                    .onFocusChanged {
-                                        if (!it.hasFocus) {
-                                            keyboardController?.hide()
-                                            if (filter?.isBlank() == true) {
-                                                filter = null
-                                                searching = false
-                                            }
-                                        }
-                                    }
-                            )
-                        } else Row(verticalAlignment = Alignment.CenterVertically) {
-                            HeaderIconButton(
-                                onClick = { searching = true },
-                                icon = R.drawable.search,
-                                color = colorPalette.text
-                            )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            if (items.isNotEmpty()) BasicText(
-                                text = pluralStringResource(
-                                    R.plurals.song_count_plural,
-                                    items.size,
-                                    items.size
-                                ),
-                                style = typography.xs.secondary.semiBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    HeaderSongSortBy(sortBy, setSortBy, sortOrder, setSortOrder)
-                }
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
             items(
@@ -309,8 +312,9 @@ fun HomeSongs(
                 )
             }
         }
+    }
 
-        FloatingActionsContainerWithScrollToTop(
+    FloatingActionsContainerWithScrollToTop(
             lazyListState = lazyListState,
             icon = null
         )

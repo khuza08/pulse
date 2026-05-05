@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,7 +32,7 @@ import app.pulse.android.R
 import app.pulse.android.models.Album
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.items.AlbumItem
 import app.pulse.android.ui.screens.Route
@@ -64,6 +65,38 @@ fun HomeAlbums(
     val lazyListState = rememberLazyListState()
 
     Box {
+    CollapsingHeader(
+        title = stringResource(R.string.albums),
+        lazyListState = lazyListState,
+        headerActions = {
+            HeaderIconButton(
+                icon = R.drawable.calendar,
+                enabled = albumSortBy == AlbumSortBy.Year,
+                onClick = { albumSortBy = AlbumSortBy.Year }
+            )
+
+            HeaderIconButton(
+                icon = R.drawable.text,
+                enabled = albumSortBy == AlbumSortBy.Title,
+                onClick = { albumSortBy = AlbumSortBy.Title }
+            )
+
+            HeaderIconButton(
+                icon = R.drawable.time,
+                enabled = albumSortBy == AlbumSortBy.DateAdded,
+                onClick = { albumSortBy = AlbumSortBy.DateAdded }
+            )
+
+            Spacer(modifier = Modifier.width(2.dp))
+
+            HeaderIconButton(
+                icon = R.drawable.arrow_up,
+                color = colorPalette.text,
+                onClick = { albumSortOrder = !albumSortOrder },
+                modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
+            )
+        }
+    ) {
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
@@ -72,38 +105,8 @@ fun HomeAlbums(
                 .background(colorPalette.background0)
                 .fillMaxSize()
         ) {
-            item(
-                key = "header",
-                contentType = 0
-            ) {
-                Header(title = stringResource(R.string.albums)) {
-                    HeaderIconButton(
-                        icon = R.drawable.calendar,
-                        enabled = albumSortBy == AlbumSortBy.Year,
-                        onClick = { albumSortBy = AlbumSortBy.Year }
-                    )
-
-                    HeaderIconButton(
-                        icon = R.drawable.text,
-                        enabled = albumSortBy == AlbumSortBy.Title,
-                        onClick = { albumSortBy = AlbumSortBy.Title }
-                    )
-
-                    HeaderIconButton(
-                        icon = R.drawable.time,
-                        enabled = albumSortBy == AlbumSortBy.DateAdded,
-                        onClick = { albumSortBy = AlbumSortBy.DateAdded }
-                    )
-
-                    Spacer(modifier = Modifier.width(2.dp))
-
-                    HeaderIconButton(
-                        icon = R.drawable.arrow_up,
-                        color = colorPalette.text,
-                        onClick = { albumSortOrder = !albumSortOrder },
-                        modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
-                    )
-                }
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
             items(
@@ -119,8 +122,9 @@ fun HomeAlbums(
                 )
             }
         }
+    }
 
-        FloatingActionsContainerWithScrollToTop(
+    FloatingActionsContainerWithScrollToTop(
             lazyListState = lazyListState,
             icon = null
         )

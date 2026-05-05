@@ -130,7 +130,6 @@ android {
     }
     chaquopy {
         defaultConfig {
-            println("DEBUG: Setting Chaquopy version to 3.11")
             buildPython(
                 System.getenv("CHAQUOPY_PYTHON")
                     ?: localProperties.getProperty("chaquopy.python")

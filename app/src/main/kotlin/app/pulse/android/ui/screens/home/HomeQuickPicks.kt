@@ -9,6 +9,8 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +51,7 @@ import app.pulse.android.query
 import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
-import app.pulse.android.ui.components.themed.Header
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.TextPlaceholder
 import app.pulse.android.ui.items.AlbumItem
@@ -63,6 +65,7 @@ import app.pulse.android.ui.items.SongItemPlaceholder
 import app.pulse.android.ui.screens.Route
 import app.pulse.android.ui.screens.settingsRoute
 import app.pulse.android.ui.components.themed.HeaderCircleIconButton
+import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.utils.asMediaItem
 import app.pulse.android.utils.center
 import app.pulse.android.utils.forcePlay
@@ -162,27 +165,28 @@ fun QuickPicks(
 
         val itemInHorizontalGridWidth = maxWidth * quickPicksLazyGridItemWidthFactor
 
-        Column(
-            modifier = Modifier
-                .background(colorPalette.background0)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(
-                    windowInsets
-                        .only(WindowInsetsSides.Vertical)
-                        .asPaddingValues()
+        CollapsingHeader(
+            title = stringResource(R.string.quick_picks),
+            scrollState = scrollState,
+            headerActions = {
+                HeaderCircleIconButton(
+                    icon = R.drawable.settings,
+                    onClick = { settingsRoute.global() }
                 )
+            }
         ) {
-            Header(
-                title = stringResource(R.string.quick_picks),
-                modifier = Modifier.padding(endPaddingValues),
-                headerActions = {
-                    HeaderCircleIconButton(
-                        icon = R.drawable.settings,
-                        onClick = { settingsRoute.global() }
+            Column(
+                modifier = Modifier
+                    .background(colorPalette.background0)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(
+                        windowInsets
+                            .only(WindowInsetsSides.Vertical)
+                            .asPaddingValues()
                     )
-                }
-            )
+            ) {
+                Spacer(modifier = Modifier.height(80.dp))
 
             relatedPageResult?.getOrNull()?.let { related ->
                 LazyHorizontalGrid(
@@ -389,6 +393,7 @@ fun QuickPicks(
                     }
                 }
             }
+        }
         }
 
         FloatingActionsContainerWithScrollToTop(
