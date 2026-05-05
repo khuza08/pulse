@@ -117,6 +117,7 @@ fun MorphingDock(
                     )
                 )
             )
+            .safeDrawingPadding()
             .padding(horizontal = 24.dp, vertical = 24.dp)
             .fillMaxWidth()
             .height(Dimensions.items.collapsedPlayerHeight * 2 + spacing + 80.dp)
