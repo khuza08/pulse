@@ -16,7 +16,7 @@ android {
     namespace = "app.pulse.android"
     compileSdk = 36
 
-    val abis = listOf("arm64-v8a")
+    val abis = listOf("arm64-v8a", "x86_64")
     val cmakeVersion = "4.1.2"
     ndkVersion = "29.0.14206865"
 
