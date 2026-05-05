@@ -1,4 +1,11 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
 
 plugins {
     alias(libs.plugins.android.application)
@@ -89,7 +96,7 @@ android {
             initWith(getByName("release"))
             matchingFallbacks += "release"
 
-            applicationIdSuffix = ".nightly"
+            // applicationIdSuffix = ".nightly"
             versionNameSuffix = "-NIGHTLY"
             manifestPlaceholders["appName"] = "Pulse Nightly"
             signingConfig = signingConfigs.findByName("ci")
@@ -119,6 +126,22 @@ android {
         cmake {
             version = cmakeVersion
             path = file("src/main/cpp/CMakeLists.txt")
+        }
+    }
+    chaquopy {
+        defaultConfig {
+            println("DEBUG: Setting Chaquopy version to 3.11")
+            buildPython(
+                System.getenv("CHAQUOPY_PYTHON")
+                    ?: localProperties.getProperty("chaquopy.python")
+                    ?: "python3.11"
+            )
+            version = "3.11"
+            pip {
+                install("yt-dlp>=2026.03.17")
+                install("yt-dlp-ejs")
+                install("pip")
+            }
         }
     }
 }
@@ -173,17 +196,6 @@ composeCompiler {
         val dest = layout.buildDirectory.dir("compose_metrics")
         metricsDestination = dest
         reportsDestination = dest
-    }
-}
-
-chaquopy {
-    defaultConfig {
-        version = "3.14"
-        pip {
-            install("yt-dlp>=2026.03.17")
-            install("yt-dlp-ejs")
-            install("pip")
-        }
     }
 }
 
