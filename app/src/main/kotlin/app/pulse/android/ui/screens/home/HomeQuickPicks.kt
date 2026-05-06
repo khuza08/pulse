@@ -186,7 +186,7 @@ fun QuickPicks(
                             .asPaddingValues()
                     )
             ) {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(96.dp))
 
             relatedPageResult?.getOrNull()?.let { related ->
                 LazyHorizontalGrid(
