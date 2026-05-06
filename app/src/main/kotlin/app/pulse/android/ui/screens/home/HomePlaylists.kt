@@ -125,7 +125,6 @@ fun HomePlaylists(
                 onClick = { isCreatingANewPlaylist = true }
             )
 
-            Spacer(modifier = Modifier.weight(1f))
 
             HeaderIconButton(
                 icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,

@@ -152,11 +152,7 @@ fun HomeSongs(
 
     val (currentMediaId, playing) = playingSong(binder)
 
-    Box(
-        modifier = Modifier
-            .background(colorPalette.background0)
-            .fillMaxSize()
-    ) {
+    Box {
     CollapsingHeader(
         title = title,
         lazyListState = lazyListState,
@@ -218,7 +214,6 @@ fun HomeSongs(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
 
             HeaderSongSortBy(sortBy, setSortBy, sortOrder, setSortOrder)
         }
@@ -227,7 +222,10 @@ fun HomeSongs(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
                 .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
-                .asPaddingValues()
+                .asPaddingValues(),
+            modifier = Modifier
+                .background(colorPalette.background0)
+                .fillMaxSize()
         ) {
             item {
                 Spacer(modifier = Modifier.height(80.dp))
