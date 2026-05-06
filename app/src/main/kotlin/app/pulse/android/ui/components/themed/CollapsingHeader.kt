@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
 import app.pulse.android.utils.medium
 import app.pulse.core.ui.LocalAppearance
 
@@ -102,8 +103,8 @@ private fun CollapsingHeaderInternal(
     val (colorPalette, typography) = LocalAppearance.current
     val density = LocalDensity.current
 
-    val expandedHeight = 80.dp
-    val collapsedHeight = 56.dp
+    val expandedHeight = 120.dp
+    val collapsedHeight = 72.dp
     val collapseThresholdPx = with(density) { expandedHeight.toPx() }
 
     val collapseProgress = (scrollPixels / collapseThresholdPx).coerceIn(0f, 1f)
@@ -111,8 +112,8 @@ private fun CollapsingHeaderInternal(
     val currentHeight = lerp(expandedHeight, collapsedHeight, collapseProgress)
     
     // Lerp text style
-    val expandedStyle = typography.xxl.medium
-    val collapsedStyle = typography.l.medium
+    val expandedStyle = typography.xxl.medium.copy(fontSize = 38.sp)
+    val collapsedStyle = typography.l.medium.copy(fontSize = 28.sp)
     val currentFontSize = androidx.compose.ui.unit.lerp(expandedStyle.fontSize, collapsedStyle.fontSize, collapseProgress)
     val currentStyle = expandedStyle.copy(fontSize = currentFontSize)
 
@@ -126,15 +127,23 @@ private fun CollapsingHeaderInternal(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(currentHeight + 76.dp)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             colorPalette.background0.copy(alpha = collapseProgress),
-                            colorPalette.background0.copy(alpha = collapseProgress * 0.5f),
+                            colorPalette.background0.copy(alpha = collapseProgress * 0.9f),
+                            colorPalette.background0.copy(alpha = collapseProgress * 0.6f),
                             Color.Transparent
                         )
                     )
                 )
+        )
+
+        // Header Content
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
                 .statusBarsPadding()
                 .height(currentHeight)
                 .padding(horizontal = 16.dp),
@@ -143,7 +152,9 @@ private fun CollapsingHeaderInternal(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp)
             ) {
                 BasicText(
                     text = title,
