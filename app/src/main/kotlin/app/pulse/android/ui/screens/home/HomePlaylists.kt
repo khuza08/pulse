@@ -120,12 +120,10 @@ fun HomePlaylists(
         title = stringResource(R.string.playlists),
         lazyGridState = lazyGridState,
         headerActions = {
-            SecondaryTextButton(
-                text = stringResource(R.string.new_playlist),
+            HeaderIconButton(
+                icon = R.drawable.add,
                 onClick = { isCreatingANewPlaylist = true }
             )
-
-
             HeaderIconButton(
                 icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
                 onClick = {
