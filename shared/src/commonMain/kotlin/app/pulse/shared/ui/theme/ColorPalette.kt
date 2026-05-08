@@ -1,7 +1,9 @@
 package app.pulse.shared.ui.theme
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 
 @Immutable
 data class ColorPalette(
@@ -18,7 +20,46 @@ data class ColorPalette(
     val textDisabled: Color,
     val isDefault: Boolean,
     val isDark: Boolean
-)
+) {
+    companion object {
+        val Saver: Saver<ColorPalette, List<Any>> = Saver(
+            save = { palette ->
+                listOf(
+                    palette.background0.toArgb(),
+                    palette.background1.toArgb(),
+                    palette.background2.toArgb(),
+                    palette.accent.toArgb(),
+                    palette.onAccent.toArgb(),
+                    palette.red.toArgb(),
+                    palette.blue.toArgb(),
+                    palette.yellow.toArgb(),
+                    palette.text.toArgb(),
+                    palette.textSecondary.toArgb(),
+                    palette.textDisabled.toArgb(),
+                    palette.isDefault,
+                    palette.isDark
+                )
+            },
+            restore = { list ->
+                ColorPalette(
+                    background0 = Color(list[0] as Int),
+                    background1 = Color(list[1] as Int),
+                    background2 = Color(list[2] as Int),
+                    accent = Color(list[3] as Int),
+                    onAccent = Color(list[4] as Int),
+                    red = Color(list[5] as Int),
+                    blue = Color(list[6] as Int),
+                    yellow = Color(list[7] as Int),
+                    text = Color(list[8] as Int),
+                    textSecondary = Color(list[9] as Int),
+                    textDisabled = Color(list[10] as Int),
+                    isDefault = list[11] as Boolean,
+                    isDark = list[12] as Boolean
+                )
+            }
+        )
+    }
+}
 
 private val defaultAccentColor = Color(0xffffffff).hsl
 

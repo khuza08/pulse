@@ -41,7 +41,8 @@ fun appearance(
         source,
         darkness,
         isDark,
-        materialAccentColor
+        materialAccentColor,
+        saver = ColorPalette.Saver
     ) {
         colorPaletteOf(
             source = source,
