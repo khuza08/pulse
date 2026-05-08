@@ -21,5 +21,7 @@ data class Song(
     @ColumnInfo(defaultValue = "false")
     val explicit: Boolean = false
 ) {
-    fun toggleLike() = copy(likedAt = if (likedAt == null) System.currentTimeMillis() else null)
+    fun toggleLike() = copy(likedAt = if (likedAt == null) currentTimeMillis() else null)
 }
+
+expect fun currentTimeMillis(): Long
