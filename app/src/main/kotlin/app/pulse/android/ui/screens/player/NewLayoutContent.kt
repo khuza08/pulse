@@ -387,26 +387,22 @@ fun NewLayoutContent(
                         .padding(bottom = if (isShowingLyrics || isShowingQueue) 16.dp else 0.dp)
                         .weight(1f)
                 ) {
-                    Lyrics(
+                    if (isShowingLyrics) Lyrics(
                         mediaId = mediaId,
                         isDisplayed = true,
                         onDismiss = { onShowLyrics(false) },
                         mediaMetadataProvider = { mediaItem!!.mediaMetadata },
                         durationProvider = { player.duration },
                         ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .alpha(if (isShowingLyrics) 1f else 0f),
+                        modifier = Modifier.fillMaxSize(),
                         showControls = false,
                         lazyListState = lyricsListState
                     )
 
-                    if (binder != null) {
+                    if (isShowingQueue && binder != null) {
                         QueueOverlay(
                             binder = binder,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .alpha(if (isShowingQueue) 1f else 0f),
+                            modifier = Modifier.fillMaxSize(),
                             onDismiss = { onShowQueue(false) }
                         )
                     }
