@@ -65,6 +65,7 @@ import app.pulse.android.R
 import app.pulse.android.models.Playlist
 import app.pulse.android.models.SongPlaylistMap
 import app.pulse.android.preferences.AppearancePreferences
+import androidx.core.content.edit
 import app.pulse.android.preferences.PlayerPreferences
 import app.pulse.android.service.PlayerService
 import app.pulse.android.transaction
@@ -626,12 +627,12 @@ fun QueueOverlay(
         lazyListState.scrollToItem(mediaItemIndex.coerceAtLeast(0))
     }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.padding(horizontal = 48.dp)) {
         // header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicText(
@@ -639,80 +640,70 @@ fun QueueOverlay(
                 style = typography.l.bold.copy(color = colorPalette.text)
             )
             Spacer(modifier = Modifier.weight(1f))
-            BasicText(
-                text = stringResource(R.string.clear),
-                style = typography.xxs.medium.copy(color = colorPalette.accent),
-                modifier = Modifier.clickable {
-                    val currentIndex = binder.player.currentMediaItemIndex
-                    val count = binder.player.mediaItemCount
-                    if (count > 0 && currentIndex >= 0) {
-                        // remove all items except current
-                        val toRemove = (0 until count).filter { it != currentIndex }
-                        toRemove.sortedDescending().forEach { binder.player.removeMediaItem(it) }
-                    }
-                }
-            )
-        }
-
-        // shuffle, repeat, autoplay, crossfade
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(R.drawable.shuffle),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(
-                    if (binder.player.shuffleModeEnabled) colorPalette.accent else colorPalette.text
-                ),
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        reorderingState.coroutineScope.launch {
-                            lazyListState.smoothScrollToTop()
-                        }.invokeOnCompletion {
-                            binder.player.shuffleQueue()
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.shuffle_new),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(
+                        if (binder.player.shuffleModeEnabled) colorPalette.accent else colorPalette.text
+                    ),                        modifier = Modifier
+                        .size(18.dp)
+                        .clickable {
+                            reorderingState.coroutineScope.launch {
+                                lazyListState.smoothScrollToTop()
+                            }.invokeOnCompletion {
+                                binder.player.shuffleQueue()
+                            }
                         }
-                    }
-            )
-            Image(
-                painter = painterResource(
-                    if (binder.player.repeatMode != Player.REPEAT_MODE_OFF) R.drawable.repeat_on
-                    else R.drawable.repeat
-                ),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(
-                    if (binder.player.repeatMode != Player.REPEAT_MODE_OFF) colorPalette.accent else colorPalette.text
-                ),
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable {
-                        binder.player.repeatMode = when (binder.player.repeatMode) {
-                            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
-                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                            else -> Player.REPEAT_MODE_OFF
+                )
+                Image(
+                    painter = painterResource(
+                        when {
+                            PlayerPreferences.trackLoopEnabled -> R.drawable.repeat_once
+                            PlayerPreferences.queueLoopEnabled -> R.drawable.repeat_forever
+                            else -> R.drawable.repeat_forever
                         }
-                    }
-            )
-            Image(
-                painter = painterResource(R.drawable.infinite),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(
-                    if (PlayerPreferences.queueLoopEnabled) colorPalette.accent else colorPalette.text
-                ),
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { PlayerPreferences.queueLoopEnabled = !PlayerPreferences.queueLoopEnabled }
-            )
-            Image(
-                painter = painterResource(R.drawable.sync),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorPalette.text),
-                modifier = Modifier.size(24.dp)
-            )
+                    ),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(
+                        if (PlayerPreferences.trackLoopEnabled || PlayerPreferences.queueLoopEnabled) colorPalette.accent else colorPalette.text
+                    ),                        modifier = Modifier
+                        .size(18.dp)
+                        .clickable {
+                            app.pulse.android.service.RepeatDebug.logClick()
+                            if (PlayerPreferences.queueLoopEnabled) {
+                                PlayerPreferences.edit(commit = true) {
+                                    putBoolean("trackLoopEnabled", true)
+                                    putBoolean("queueLoopEnabled", false)
+                                }
+                            } else if (PlayerPreferences.trackLoopEnabled) {
+                                PlayerPreferences.edit(commit = true) {
+                                    putBoolean("trackLoopEnabled", false)
+                                }
+                            } else {
+                                PlayerPreferences.edit(commit = true) {
+                                    putBoolean("queueLoopEnabled", true)
+                                }
+                            }
+                            app.pulse.android.service.RepeatDebug.logClick()
+                        }
+                )
+                Image(
+                    painter = painterResource(R.drawable.infinite),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(
+                        if (PlayerPreferences.crossfadeSeconds > 0) colorPalette.accent else colorPalette.text
+                    ),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable {
+                            PlayerPreferences.crossfadeSeconds = if (PlayerPreferences.crossfadeSeconds > 0) 0 else 6
+                        }
+                )
+            }
         }
 
         // Song list
@@ -723,7 +714,6 @@ fun QueueOverlay(
                     .only(WindowInsetsSides.Horizontal)
                     .asPaddingValues(),
                 modifier = Modifier
-                    .padding(horizontal = 32.dp)
                     .verticalFadingEdge(topSize = 3, bottomSize = 3)
                     .weight(1f)
             ) {
