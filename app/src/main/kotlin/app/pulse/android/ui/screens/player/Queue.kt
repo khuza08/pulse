@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -587,7 +588,8 @@ fun QueueOverlay(
     binder: PlayerService.Binder,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit = {},
-    windowInsets: WindowInsets = WindowInsets.systemBars
+    windowInsets: WindowInsets = WindowInsets.systemBars,
+    lazyListState: LazyListState = rememberLazyListState()
 ) {
     val (colorPalette, typography, _, thumbnailShape) = LocalAppearance.current
     val menuState = LocalMenuState.current
@@ -597,8 +599,6 @@ fun QueueOverlay(
     }
     var windows by remember { mutableStateOf(binder.player.currentTimeline.windows) }
     var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
-
-    val lazyListState = rememberLazyListState()
     val reorderingState = rememberReorderingState(
         lazyListState = lazyListState,
         key = windows,
@@ -629,10 +629,6 @@ fun QueueOverlay(
         targetState = if (reorderingState.isDragging) -1L else mediaItemIndex,
         label = ""
     )
-
-    LaunchedEffect(Unit) {
-        lazyListState.scrollToItem(mediaItemIndex.coerceAtLeast(0))
-    }
 
     Column(modifier = modifier.padding(horizontal = 48.dp)) {
         // header

@@ -380,6 +380,8 @@ fun NewLayoutContent(
                 // to the top and the follow-effect visibly re-centers on every
                 // open (the vertical bounce).
                 val lyricsListState = rememberLazyListState()
+                val queueListState = rememberLazyListState()
+                var hasScrolledQueueToCurrent by remember { mutableStateOf(false) }
 
                 Box(
                     modifier = Modifier
@@ -400,10 +402,18 @@ fun NewLayoutContent(
                     )
 
                     if (isShowingQueue && binder != null) {
+                        // Scroll to current song only on first open, then restore saved position
+                        LaunchedEffect(player.currentMediaItemIndex) {
+                            if (!hasScrolledQueueToCurrent && player.currentMediaItemIndex >= 0) {
+                                queueListState.scrollToItem(player.currentMediaItemIndex)
+                                hasScrolledQueueToCurrent = true
+                            }
+                        }
                         QueueOverlay(
                             binder = binder,
                             modifier = Modifier.fillMaxSize(),
-                            onDismiss = { onShowQueue(false) }
+                            onDismiss = { onShowQueue(false) },
+                            lazyListState = queueListState
                         )
                     }
                 }
