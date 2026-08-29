@@ -9,7 +9,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -30,7 +29,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -63,7 +61,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -105,7 +103,6 @@ import app.pulse.android.utils.toast
 import app.pulse.core.ui.LocalAppearance
 import app.pulse.core.ui.onOverlay
 import app.pulse.core.ui.onOverlayShimmer
-import app.pulse.core.ui.overlay
 import app.pulse.core.ui.utils.dp
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.NextBody
@@ -126,14 +123,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private const val UPDATE_DELAY = 50L
+private val UPDATE_DELAY = 50.milliseconds
 
 private const val ACTIVE_LINE_SCALE = 1.05f
 
@@ -319,7 +315,7 @@ fun Lyrics(
                                 withContext(Dispatchers.Main) { currentDurationProvider() }
 
                             while (duration == C.TIME_UNSET) {
-                                delay(100)
+                                delay(100.milliseconds)
                                 duration =
                                     withContext(Dispatchers.Main) { currentDurationProvider() }
                             }
@@ -868,7 +864,7 @@ fun LrcLibSearchDialog(
         loading = true
         error = false
 
-        delay(1000)
+        delay(1.seconds)
 
         LrcLib.lyrics(
             query = query,
