@@ -40,6 +40,9 @@ import app.pulse.core.ui.utils.px
 import app.pulse.core.data.utils.songBundle
 import app.pulse.providers.innertube.Innertube
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SongItem(
@@ -157,8 +160,16 @@ private fun SongItem(
                     .fillMaxSize()
             ) {
                 if (thumbnailUrl != null) {
+                    val context = LocalContext.current
+                    val thumbnailModel = remember<ImageRequest>(thumbnailUrl, thumbnailSize) {
+                        ImageRequest.Builder(context)
+                            .data(thumbnailUrl)
+                            .size(thumbnailSize.value.toInt())
+                            .crossfade(true)
+                            .build()
+                    }
                     AsyncImage(
-                        model = thumbnailUrl,
+                        model = thumbnailModel,
                         error = painterResource(id = R.mipmap.ic_launcher_foreground),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
