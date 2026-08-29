@@ -568,10 +568,7 @@ fun NewLayoutContent(
                     Image(
                         painter = painterResource(R.drawable.list),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(
-                            if (isShowingQueue) colorPalette.accent
-                            else colorPalette.accent.copy(alpha = 0.25f)
-                        ),
+                        colorFilter = ColorFilter.tint(colorPalette.accent),
                         modifier = Modifier
                             .clickable(onClick = onQueueClick)
                             .size(24.dp)
