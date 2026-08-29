@@ -272,7 +272,7 @@ fun Lyrics(
 
     val pip = isInPip()
 
-    var lyrics by remember { mutableStateOf<Lyrics?>(null) }
+    var lyrics by remember { mutableStateOf<Lyrics?>(LyricsCache[mediaId]) }
 
     val showSynchronizedLyrics = remember(shouldShowSynchronizedLyrics, lyrics) {
         shouldShowSynchronizedLyrics && lyrics?.synced?.isBlank() != true
