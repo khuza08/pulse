@@ -673,7 +673,6 @@ fun QueueOverlay(
                     ),                        modifier = Modifier
                         .size(18.dp)
                         .clickable {
-                            app.pulse.android.service.RepeatDebug.logClick()
                             if (PlayerPreferences.queueLoopEnabled) {
                                 PlayerPreferences.edit(commit = true) {
                                     putBoolean("trackLoopEnabled", true)
@@ -688,7 +687,6 @@ fun QueueOverlay(
                                     putBoolean("queueLoopEnabled", true)
                                 }
                             }
-                            app.pulse.android.service.RepeatDebug.logClick()
                         }
                 )
                 Image(

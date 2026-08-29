@@ -501,7 +501,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private fun updateRepeatMode() {
         // Both players need the same repeat mode: the silent player becomes the
         // audible one at each boundary, and REPEAT_MODE_ONE also gates the fade.
-        RepeatDebug.logUpdate()
         val mode = when {
             PlayerPreferences.trackLoopEnabled -> Player.REPEAT_MODE_ONE
             PlayerPreferences.queueLoopEnabled -> Player.REPEAT_MODE_ALL
@@ -509,7 +508,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         }
         player.repeatMode = mode
         silent.repeatMode = mode
-        RepeatDebug.logPlayerRepeatMode(mode)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
