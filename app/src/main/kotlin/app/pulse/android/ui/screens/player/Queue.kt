@@ -623,6 +623,8 @@ fun QueueOverlay(
         }
     }
 
+    val isScrolling by remember { derivedStateOf { lazyListState.isScrollInProgress } }
+
     val musicBarsTransition = updateTransition(
         targetState = if (reorderingState.isDragging) -1L else mediaItemIndex,
         label = ""
@@ -730,7 +732,8 @@ fun QueueOverlay(
             ) {
                 itemsIndexed(
                     items = windows,
-                    key = { _, window -> window.uid.hashCode() }
+                    key = { _, window -> window.uid.hashCode() },
+                    contentType = { _, _ -> "song" }
                 ) { i, window ->
                     val isPlayingThisMediaItem = mediaItemIndex == window.firstPeriodIndex
 
@@ -790,10 +793,14 @@ fun QueueOverlay(
                                     }
                                 }
                             )
-                            .animateItemPlacement(reorderingState)
-                            .draggedItem(reorderingState = reorderingState, index = i)
+                            .let { mod ->
+                                if (!isScrolling) mod
+                                    .animateItemPlacement(reorderingState)
+                                    .draggedItem(reorderingState = reorderingState, index = i)
+                                else mod
+                            }
                             .let {
-                                if (!isPlayingThisMediaItem)
+                                if (!isPlayingThisMediaItem && !isScrolling)
                                     it.swipeToClose(
                                         key = windows,
                                         delay = 100.milliseconds,
