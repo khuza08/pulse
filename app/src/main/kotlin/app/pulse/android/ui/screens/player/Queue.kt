@@ -18,7 +18,10 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -52,6 +55,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LookaheadScope
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -711,9 +715,16 @@ fun QueueOverlay(
                 state = lazyListState,
                 contentPadding = WindowInsets.systemBars
                     .only(WindowInsetsSides.Horizontal)
-                    .asPaddingValues(),
+                    .asPaddingValues().let { hPadding ->
+                        PaddingValues(
+                            start = hPadding.calculateStartPadding(LocalLayoutDirection.current),
+                            end = hPadding.calculateEndPadding(LocalLayoutDirection.current),
+                            top = 4.dp,
+                            bottom = 4.dp
+                        )
+                    },
                 modifier = Modifier
-                    .verticalFadingEdge(topSize = 3, bottomSize = 3) // higher = smaller
+                    .verticalFadingEdge(topSize = 24, bottomSize = 24) // higher = smaller
                     .horizontalFadingEdge(leftSize = 24, rightSize = 20)
                     .weight(1f)
             ) {
