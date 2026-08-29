@@ -84,6 +84,7 @@ import app.pulse.android.ui.components.themed.ReorderHandle
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.TextToggle
+import app.pulse.android.ui.modifiers.horizontalFadingEdge
 import app.pulse.android.ui.modifiers.verticalFadingEdge
 import app.pulse.android.ui.items.SongItem
 import app.pulse.android.ui.items.SongItemPlaceholder
@@ -712,7 +713,8 @@ fun QueueOverlay(
                     .only(WindowInsetsSides.Horizontal)
                     .asPaddingValues(),
                 modifier = Modifier
-                    .verticalFadingEdge(topSize = 3, bottomSize = 3)
+                    .verticalFadingEdge(topSize = 3, bottomSize = 3) // higher = smaller
+                    .horizontalFadingEdge(leftSize = 24, rightSize = 20)
                     .weight(1f)
             ) {
                 itemsIndexed(
