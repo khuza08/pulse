@@ -9,14 +9,14 @@
 
 **1.2.7**
 
-<img src="./assets/screenshots/4.jpg" width="30%" /> 
-<img src="./assets/screenshots/5.jpg" width="30%" /> 
+<img src="./assets/screenshots/4.jpg" width="30%" />
+<img src="./assets/screenshots/5.jpg" width="30%" />
 <img src="./assets/screenshots/6.jpg" width="30%" />
 
 **1.2.6**
 
-<img src="./assets/screenshots/1.png" width="30%" /> 
-<img src="./assets/screenshots/2.png" width="30%" /> 
+<img src="./assets/screenshots/1.png" width="30%" />
+<img src="./assets/screenshots/2.png" width="30%" />
 <img src="./assets/screenshots/3.png" width="30%" />
 </details>
 
@@ -45,10 +45,6 @@
 ## Installation
 
 [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="80">](https://github.com/khuza08/Pulse/releases/latest)
-
-## Discuss & Feature Requests
-
-[![Telegram](https://img.shields.io/badge/Telegram-Discuss-0088cc?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+uS2sD8z5_uthYThl)
 
 ## Acknowledgments
 
