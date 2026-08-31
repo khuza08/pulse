@@ -128,7 +128,13 @@ fun QuickPicks(
 
     LaunchedEffect(DataPreferences.quickPicksSource) {
         if (relatedPageResult == null) {
-            HomeCache.restoreRelated(context.filesDir)?.let { relatedPageResult = it }
+            val cached = HomeCache.restoreRelated(context.filesDir)
+            if (cached?.getOrNull()?.songs?.isNotEmpty() == true) {
+                relatedPageResult = cached
+            } else if (cached != null) {
+                // stale/empty cache delete so next restart fetches fresh.
+                java.io.File(context.filesDir, "home/related.json").delete()
+            }
         }
         // Warm the thumbnails so the cached feed renders fully offline.
         HomeCache.prefetchThumbs(context, null, relatedPageResult?.getOrNull())
@@ -136,7 +142,8 @@ fun QuickPicks(
         suspend fun handleSong(song: Song?) {
             var seedId = song?.id
             if (seedId == null && trending == null && relatedPageResult == null) {
-                Innertube.trendingCharts()
+                val chartsResult = Innertube.trendingCharts()
+                chartsResult
                     ?.getOrNull()
                     ?.firstOrNull()
                     ?.let { fallback ->
@@ -150,11 +157,20 @@ fun QuickPicks(
                     }
             }
             seedId = seedId ?: "J7p4bzqLvCw"
-            if (relatedPageResult == null || (trending != null && trending?.id != song?.id)) {
+            val cachedEmpty = relatedPageResult?.getOrNull()?.songs.isNullOrEmpty()
+            val shouldFetch = relatedPageResult == null || cachedEmpty || (trending != null && trending?.id != song?.id)
+            if (shouldFetch) {
                 relatedPageResult = Innertube.relatedPage(
                     body = NextBody(videoId = seedId)
                 )
-                relatedPageResult?.getOrNull()?.let {
+                // if seed returned empty content, retry with fallback seed.
+                if (relatedPageResult?.getOrNull()?.songs.isNullOrEmpty() && seedId != "J7p4bzqLvCw") {
+                    relatedPageResult = Innertube.relatedPage(
+                        body = NextBody(videoId = "J7p4bzqLvCw")
+                    )
+                }
+                // only cache if we got actual songs back.
+                relatedPageResult?.getOrNull()?.takeIf { !it.songs.isNullOrEmpty() }?.let {
                     HomeCache.saveRelated(context.filesDir, it)
                     HomeCache.prefetchThumbs(context, null, it)
                 }
@@ -170,7 +186,6 @@ fun QuickPicks(
             runCatching { handleSong(it) }
                 .onFailure {
                     if (it is kotlinx.coroutines.CancellationException) throw it
-                    android.util.Log.w("QuickPicks", "handleSong", it)
                 }
         }
     }
