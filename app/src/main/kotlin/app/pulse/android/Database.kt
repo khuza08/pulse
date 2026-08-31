@@ -391,6 +391,9 @@ interface DatabaseAccessor {
     @Query("SELECT * FROM Playlist WHERE id = :id")
     fun playlist(id: Long): Flow<Playlist?>
 
+    @Query("SELECT * FROM Playlist WHERE name = :name LIMIT 1")
+    fun playlistByName(name: String): Playlist?
+
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query(
@@ -483,7 +486,7 @@ interface DatabaseAccessor {
 
     @Query(
         """
-        SELECT thumbnailUrl FROM Song
+        SELECT COALESCE(thumbnailUrl, '') FROM Song
         JOIN SongPlaylistMap ON id = songId
         WHERE playlistId = :id
         ORDER BY position

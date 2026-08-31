@@ -45,6 +45,7 @@ import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScroll
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
+import app.pulse.android.ui.components.themed.ImportPlaylistDialog
 import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.VerticalDivider
 import app.pulse.android.ui.items.PlaylistItem
@@ -76,6 +77,11 @@ fun HomePlaylists(
     val (colorPalette) = LocalAppearance.current
 
     var isCreatingANewPlaylist by rememberSaveable { mutableStateOf(false) }
+    var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
+
+    if (isImportingPlaylist) ImportPlaylistDialog(
+        onDismiss = { isImportingPlaylist = false }
+    )
 
     if (isCreatingANewPlaylist) TextFieldDialog(
         hintText = stringResource(R.string.enter_playlist_name_prompt),
@@ -123,6 +129,10 @@ fun HomePlaylists(
             HeaderIconButton(
                 icon = R.drawable.add,
                 onClick = { isCreatingANewPlaylist = true }
+            )
+            HeaderIconButton(
+                icon = R.drawable.download,
+                onClick = { isImportingPlaylist = true }
             )
             HeaderIconButton(
                 icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
