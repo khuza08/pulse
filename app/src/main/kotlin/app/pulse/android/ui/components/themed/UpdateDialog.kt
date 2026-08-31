@@ -273,7 +273,7 @@ private fun TitleSection(
 }
 
 @Composable
-private fun AppleDialogProgressButton(
+internal fun AppleDialogProgressButton(
     progress: Float,
     palette: app.pulse.core.ui.ColorPalette,
     modifier: Modifier = Modifier,
@@ -319,7 +319,7 @@ private fun AppleDialogProgressButton(
 }
 
 @Composable
-private fun AppleDialogButton(
+internal fun AppleDialogButton(
     text: String,
     containerColor: Color,
     contentColor: Color,
