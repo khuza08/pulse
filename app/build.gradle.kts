@@ -132,6 +132,7 @@ android {
             pip {
                 install("yt_dlp-2026.8.17.73947.dev0-py3-none-any.whl")
                 install("yt-dlp-ejs")
+                install("spotifyscraper")
                 install("pip")
             }
         }

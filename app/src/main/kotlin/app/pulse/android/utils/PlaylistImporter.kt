@@ -5,6 +5,7 @@ import app.pulse.android.models.Playlist
 import app.pulse.android.models.SongPlaylistMap
 import app.pulse.android.transaction
 import app.pulse.core.data.models.SongEntity
+import app.pulse.android.Dependencies
 import app.pulse.providers.innertube.Innertube
 import app.pulse.providers.innertube.models.bodies.BrowseBody
 import app.pulse.providers.innertube.models.bodies.SearchBody
@@ -17,6 +18,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 enum class PlaylistSource { YOUTUBE, SPOTIFY, UNKNOWN }
 
@@ -76,12 +81,17 @@ object PlaylistImporter {
 
             val rawPlaylist = when (parsed.source) {
                 PlaylistSource.YOUTUBE -> fetchYouTubePlaylist(parsed.playlistId)
-                PlaylistSource.SPOTIFY -> return Result.failure(NotImplementedError("Spotify import not yet supported"))
+                PlaylistSource.SPOTIFY -> fetchSpotifyPlaylist(parsed.playlistId, url).getOrThrow()
                 PlaylistSource.UNKNOWN -> return Result.failure(IllegalArgumentException("Unsupported playlist URL"))
             }
 
             if (rawPlaylist.tracks.isEmpty()) {
                 return Result.failure(IllegalStateException("Playlist is empty"))
+            }
+
+            val existing = Database.playlistByName(rawPlaylist.name)
+            if (existing != null) {
+                return Result.failure(IllegalStateException("Playlist already imported"))
             }
 
             val resolvedTracks = resolveTracks(rawPlaylist.tracks, onProgress)
@@ -98,6 +108,29 @@ object PlaylistImporter {
             )
         } catch (e: CancellationException) {
             throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun fetchSpotifyPlaylist(playlistId: String, url: String): Result<RawPlaylist> {
+        return try {
+            val py = Dependencies.py
+            val module = py.getModule("spotify_import")
+            val jsonStr = module.callAttr("get_playlist", url).toString()
+            val json = Json.parseToJsonElement(jsonStr).jsonObject
+            val name = json["name"]?.jsonPrimitive?.content ?: "Spotify Playlist"
+            val thumbnail = json["thumbnail"]?.jsonPrimitive?.content
+            val tracks = json["tracks"]?.jsonArray?.map { element ->
+                val obj = element.jsonObject
+                RawTrack(
+                    title = obj["title"]?.jsonPrimitive?.content ?: "",
+                    artists = obj["artists"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
+                    durationMs = obj["duration_ms"]?.jsonPrimitive?.content?.toLongOrNull() ?: 0L,
+                    thumbnailUrl = obj["thumbnail"]?.jsonPrimitive?.content
+               )
+            } ?: emptyList()
+            Result.success(RawPlaylist(name = name, thumbnailUrl = thumbnail, tracks = tracks))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -243,6 +276,7 @@ object PlaylistImporter {
             val existing = Database.playlistByName(result.playlistName)
             val playlistId = existing?.id ?: Database.insert(Playlist(name = result.playlistName))
             if (playlistId > 0) {
+                Database.clearPlaylist(playlistId)
                 Database.insertSongPlaylistMaps(
                     result.resolvedTracks.mapIndexed { index, resolved ->
                         SongPlaylistMap(songId = resolved.youtubeVideoId, playlistId = playlistId, position = index)

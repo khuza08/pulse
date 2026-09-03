@@ -164,7 +164,7 @@ fun ImportPlaylistDialog(
                                     throw e
                                 } catch (e: Exception) {
                                     withContext(Dispatchers.Main) {
-                                        status = "Error: ${e.message}"
+                                        status = e.message ?: "Import failed"
                                         isLoading = false
                                     }
                                 }
