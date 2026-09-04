@@ -40,9 +40,15 @@ def get_playlist(url: str) -> str:
                 print(f"Skipping track: {e}")
                 continue
 
+        # fall back to first track's art
+        images = pd.get('images', []) if isinstance(pd.get('images'), list) else []
+        thumb = images[0].get('url', '') if images and isinstance(images[0], dict) else None
+        if not thumb and tracks:
+            thumb = tracks[0].get('thumbnail')
+
         result = {
             "name": pd.get('name', playlist.name if hasattr(playlist, 'name') else "Spotify Playlist"),
-            "thumbnail": None,
+            "thumbnail": thumb,
             "tracks": tracks,
         }
         return json.dumps(result)
