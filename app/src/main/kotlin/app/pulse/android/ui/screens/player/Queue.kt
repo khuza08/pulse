@@ -792,7 +792,11 @@ fun QueueOverlay(
                             .let { mod ->
                                 if (!isScrolling) mod
                                     .animateItemPlacement(reorderingState)
-                                    .draggedItem(reorderingState = reorderingState, index = i)
+                                    .draggedItem(
+                                        reorderingState = reorderingState,
+                                        index = i,
+                                        draggedElevation = 0.dp
+                                    )
                                 else mod
                             }
                             .let {
