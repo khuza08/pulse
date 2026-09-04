@@ -87,8 +87,11 @@ import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.TextPlaceholder
 import app.pulse.android.ui.components.themed.ValueSelectorDialogBody
 import app.pulse.android.ui.modifiers.verticalFadingEdge
+import app.pulse.android.utils.LyricsTranslation
 import app.pulse.android.utils.SynchronizedLyrics
 import app.pulse.android.utils.SynchronizedLyricsState
+import app.pulse.android.utils.currentLyricsTargetLang
+import app.pulse.android.utils.loadOrTranslateLyrics
 import app.pulse.android.utils.bold
 import app.pulse.android.utils.center
 import app.pulse.android.utils.color
@@ -240,6 +243,9 @@ fun Lyrics(
     },
     shouldKeepScreenAwake: Boolean = PlayerPreferences.lyricsKeepScreenAwake,
     shouldUpdateLyrics: Boolean = true,
+    shouldShowTranslation: Boolean = false,
+    setShouldShowTranslation: (Boolean) -> Unit = {},
+    setTranslationBusy: (Boolean) -> Unit = {},
     showControls: Boolean = true,
     lazyListState: LazyListState = rememberLazyListState()
 ) {
@@ -257,6 +263,7 @@ fun Lyrics(
     val pip = isInPip()
 
     var lyrics by remember { mutableStateOf<Lyrics?>(LyricsCache[mediaId]) }
+    var translatedText by remember(mediaId) { mutableStateOf<String?>(null) }
 
     val showSynchronizedLyrics = remember(shouldShowSynchronizedLyrics, lyrics) {
         shouldShowSynchronizedLyrics && lyrics?.synced?.isBlank() != true
@@ -356,6 +363,62 @@ fun Lyrics(
         }.exceptionOrNull()?.let {
             if (it is CancellationException) throw it
             else it.printStackTrace()
+        }
+    }
+
+    // side-by-side translation: translated copy keeps every timestamp, so the
+    // sync engine stays untouched and the original render just adds a second
+    // dimmer line under each active one. Cache = file per song+language.
+    LaunchedEffect(mediaId, shouldShowTranslation) {
+        if (!shouldShowTranslation) {
+            translatedText = null
+            setTranslationBusy(false)
+            return@LaunchedEffect
+        }
+        setTranslationBusy(true)
+        try {
+            // wait for synced lyrics to land instead of dying
+            var synced = lyrics?.synced?.takeIf { it.isNotBlank() }
+            while (synced == null) {
+                if (error) {
+                    // fetch settled: this song really has no synced lyrics
+                    translatedText = null
+                    setShouldShowTranslation(false)
+                    return@LaunchedEffect
+                }
+                delay(UPDATE_DELAY * 3)
+                synced = lyrics?.synced?.takeIf { it.isNotBlank() }
+            }
+            android.util.Log.d(
+                "LyricsTranslation",
+                "translating song=$mediaId target=${currentLyricsTargetLang(context)} lines=${synced.lines().size}"
+            )
+            when (val result = loadOrTranslateLyrics(
+                context = context,
+                mediaId = mediaId,
+                syncedLrc = synced,
+                targetLang = currentLyricsTargetLang(context)
+            )) {
+                is LyricsTranslation.Done -> translatedText = result.lrc
+                LyricsTranslation.SameLanguage -> {
+                    translatedText = null
+                    context.toast(context.getString(R.string.lyrics_translation_same_language))
+                    setShouldShowTranslation(false)
+                }
+                LyricsTranslation.Unavailable -> {
+                    translatedText = null
+                    context.toast(context.getString(R.string.lyrics_translation_unavailable))
+                    setShouldShowTranslation(false)
+                }
+                LyricsTranslation.Failure -> {
+                    android.util.Log.w("LyricsTranslation", "translation failed for $mediaId")
+                    translatedText = null
+                    context.toast(context.getString(R.string.error_lyrics_translation))
+                    setShouldShowTranslation(false)
+                }
+            }
+        } finally {
+            setTranslationBusy(false)
         }
     }
 
@@ -489,6 +552,14 @@ fun Lyrics(
                 sentences = file?.lines,
                 offset = file?.offset?.inWholeMilliseconds ?: 0L
             )
+        }
+
+        // translation lines; timestamps mirror the original so list order and
+        // count match 1:1 (LrcParser runs on both, keys are identical)
+        val translatedSentences = remember(translatedText) {
+            translatedText?.let {
+                LrcParser.parse(it)?.toLrcFile()?.lines?.values?.toImmutableList()
+            }
         }
 
         val synchronizedLyrics = remember(lyricsState, mediaId) {
@@ -632,21 +703,8 @@ fun Lyrics(
                             ),
                             label = "lyricLineScale"
                         )
-                        if (sentence.isBlank()) Image(
-                            painter = painterResource(R.drawable.musical_notes),
-                            contentDescription = null,
-                            colorFilter = ColorFilter.tint(color),
-                            modifier = Modifier
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                }
-                                .padding(vertical = 16.dp, horizontal = 48.dp)
-                                .size(lyricsFontSize.dp)
-                        ) else BasicText(
-                            text = sentence,
-                            style = if (active) typography.m.bold.copy(fontSize = lyricsFontSize).color(color)
-                            else typography.m.semiBold.copy(fontSize = lyricsFontSize).color(color),
+                        Column(
+                            horizontalAlignment = Alignment.Start,
                             modifier = Modifier
                                 .graphicsLayer {
                                     scaleX = scale
@@ -660,7 +718,29 @@ fun Lyrics(
                                         binder?.player?.seekTo(synchronizedLyrics.sentences.keys.elementAt(index))
                                     }
                                 )
-                        )
+                        ) {
+                            if (sentence.isBlank()) Image(
+                                painter = painterResource(R.drawable.musical_notes),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(color),
+                                modifier = Modifier
+                                    .padding(vertical = 2.dp)
+                                    .size(lyricsFontSize.dp)
+                            ) else BasicText(
+                                text = sentence,
+                                style = if (active) typography.m.bold.copy(fontSize = lyricsFontSize).color(color)
+                                else typography.m.semiBold.copy(fontSize = lyricsFontSize).color(color)
+                            )
+                            // translation here
+                            val translation = translatedSentences?.getOrNull(index)
+                            if (translation != null && translation.isNotBlank() && sentence.isNotBlank()) BasicText(
+                                text = translation,
+                                style = typography.m.semiBold
+                                    .copy(fontSize = (lyricsFontSize.value * 0.62f).sp)
+                                    .color(color.copy(alpha = color.alpha * 0.85f)),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
                     }
                     item(key = "footer", contentType = 0) {
                         Spacer(modifier = Modifier.height(maxHeight / 2))

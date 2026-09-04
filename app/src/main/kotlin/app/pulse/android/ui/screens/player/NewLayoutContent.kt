@@ -32,8 +32,10 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,17 +63,22 @@ import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import java.util.Locale
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import app.pulse.android.R
 import app.pulse.android.models.ui.UiMedia
 import app.pulse.android.models.ui.toUiMedia
+import app.pulse.android.preferences.LyricsTranslationLanguage
 import app.pulse.android.preferences.PlayerPreferences
 import app.pulse.android.service.PlayerService
 import app.pulse.android.ui.components.SeekBar
 import app.pulse.android.utils.bold
+import app.pulse.android.utils.isMlKitSupportedLang
 import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.semiBold
@@ -163,6 +170,23 @@ fun NewLayoutContent(
     val uiMedia = remember(mediaId, duration) { mediaItem.toUiMedia(duration) }
 
     var lyricsReady by remember(mediaId) { mutableStateOf(LyricsCache[mediaId] != null) }
+    var showTranslation by remember(mediaId) { mutableStateOf(false) }
+    var translationBusy by remember(mediaId) { mutableStateOf(false) }
+    var showingTranslatorDialog by remember { mutableStateOf(false) }
+
+    if (showingTranslatorDialog) TranslationLanguageDialog(
+        translationActive = showTranslation,
+        onDismiss = { showingTranslatorDialog = false },
+        onSelectLanguage = {
+            PlayerPreferences.lyricsTranslationLanguage = it
+            showTranslation = true
+            showingTranslatorDialog = false
+        },
+        onHide = {
+            showTranslation = false
+            showingTranslatorDialog = false
+        }
+    )
 
     LaunchedEffect(mediaId) {
         if (LyricsCache[mediaId] != null) {
@@ -364,13 +388,27 @@ fun NewLayoutContent(
 
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        Image(
+                        if (isShowingLyrics) {
+                            if (translationBusy) app.pulse.android.ui.components.themed.CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = colorPalette.accent
+                            ) else Image(
+                                painter = painterResource(R.drawable.translate),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(
+                                    if (showTranslation) colorPalette.accent else colorPalette.text
+                                ),
+                                modifier = Modifier
+                                    .clickable { showingTranslatorDialog = true }
+                                    .size(24.dp)
+                            )
+                        } else Image(
                             painter = if (likedAt == null) painterResource(R.drawable.heart_outline)
                             else painterResource(R.drawable.heart),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(colorPalette.text),
                             modifier = Modifier
-                                .clickable(enabled = isShowingLyrics || isShowingQueue) {
+                                .clickable(enabled = isShowingQueue) {
                                     setLikedAt(
                                         if (likedAt == null) System.currentTimeMillis() else null
                                     )
@@ -401,6 +439,9 @@ fun NewLayoutContent(
                         durationProvider = { player.duration },
                         ensureSongInserted = { app.pulse.android.Database.insert(mediaItem!!) },
                         modifier = Modifier.fillMaxSize(),
+                        shouldShowTranslation = showTranslation,
+                        setShouldShowTranslation = { showTranslation = it },
+                        setTranslationBusy = { translationBusy = it },
                         showControls = false,
                         lazyListState = lyricsListState
                     )
@@ -711,5 +752,84 @@ private fun NewLayoutVolumeSlider(
         )
 
         Spacer(modifier = Modifier.width(20.dp))
+    }
+}
+
+@Composable
+private fun TranslationLanguageDialog(
+    translationActive: Boolean,
+    onDismiss: () -> Unit,
+    onSelectLanguage: (LyricsTranslationLanguage) -> Unit,
+    onHide: () -> Unit
+) {
+    val (colorPalette, typography) = LocalAppearance.current
+    val selected = PlayerPreferences.lyricsTranslationLanguage
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .padding(all = 48.dp)
+                .background(colorPalette.background1, RoundedCornerShape(8.dp))
+                .padding(vertical = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            BasicText(
+                text = stringResource(R.string.lyrics_translation_language),
+                style = typography.s.semiBold,
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp)
+            )
+
+            if (translationActive) Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onHide() }
+                    .padding(vertical = 12.dp, horizontal = 24.dp)
+            ) {
+                BasicText(
+                    text = stringResource(R.string.hide_translation),
+                    style = typography.m.semiBold.copy(color = colorPalette.accent),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            val unsupported = LyricsTranslationLanguage.entries.firstOrNull {
+                it != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(it.langCode)
+            }
+            if (unsupported != null) {
+                BasicText(
+                    text = stringResource(R.string.lyrics_translation_unsupported_languages),
+                    style = typography.xs.semiBold.copy(color = colorPalette.textSecondary),
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp)
+                )
+            }
+
+            LyricsTranslationLanguage.entries.forEach { lang ->
+                if (lang != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(lang.langCode)) return@forEach
+                val isCurrent = translationActive && lang == selected
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectLanguage(lang) }
+                        .padding(vertical = 12.dp, horizontal = 24.dp)
+                ) {
+                    BasicText(
+                        text = if (lang == LyricsTranslationLanguage.Device)
+                            stringResource(R.string.device_language)
+                        else Locale.forLanguageTag(lang.langCode)
+                            .getDisplayLanguage(Locale.getDefault()),
+                        style = typography.m.semiBold.copy(
+                            color = if (isCurrent) colorPalette.accent else colorPalette.text
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isCurrent) BasicText(
+                        text = "\u2713",
+                        style = typography.m.bold.copy(color = colorPalette.accent)
+                    )
+                }
+            }
+        }
     }
 }

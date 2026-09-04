@@ -6,6 +6,38 @@ import androidx.compose.ui.res.stringResource
 import app.pulse.android.GlobalPreferencesHolder
 import app.pulse.android.R
 
+// translation target for synced lyrics; Device = the user's device/app language.
+// langCode follows Google translate's target codes (zh-CN = simplified Chinese).
+enum class LyricsTranslationLanguage(val langCode: String) {
+    Device(""),
+    English("en"),
+    Spanish("es"),
+    French("fr"),
+    German("de"),
+    Italian("it"),
+    Portuguese("pt"),
+    Russian("ru"),
+    Japanese("ja"),
+    Korean("ko"),
+    SimplifiedChinese("zh-CN"),
+    Arabic("ar"),
+    Hindi("hi"),
+    Indonesian("id"),
+    Turkish("tr"),
+    Dutch("nl"),
+    Polish("pl"),
+    Swedish("sv"),
+    Thai("th"),
+    Vietnamese("vi"),
+    Persian("fa"),
+    Ukrainian("uk"),
+    Czech("cs"),
+    Greek("el"),
+    Hebrew("he"),
+    Hungarian("hu"),
+    Romanian("ro")
+}
+
 object PlayerPreferences : GlobalPreferencesHolder() {
     val isInvincibilityEnabledProperty = boolean(false)
     var isInvincibilityEnabled by isInvincibilityEnabledProperty
@@ -44,6 +76,7 @@ object PlayerPreferences : GlobalPreferencesHolder() {
     var lyricsKeepScreenAwake by boolean(true)
     var lyricsFontSize by int(24)
     var lyricsShowSystemBars by boolean(true)
+    var lyricsTranslationLanguage by enum(LyricsTranslationLanguage.Device)
 
     var skipOnError by boolean(false)
     var handleAudioFocus by boolean(true)
