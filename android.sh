@@ -87,6 +87,15 @@ for serial in "${DEVICES[@]}"; do
   echo "    Installing $(basename "$apk")"
   adb -s "$serial" install -r "$apk"
   echo "    OK: installed on $serial"
+
+  # run the app after install
+  echo "    Launching Pulse..."
+  if adb -s "$serial" shell pm path com.elza.pulse >/dev/null 2>&1; then
+    adb -s "$serial" shell monkey -p com.elza.pulse -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+    echo "    OK: launched on $serial"
+  else
+    echo "    WARN: com.elza.pulse not installed, skipping launch" >&2
+  fi
 done
 
 echo ""
