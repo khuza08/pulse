@@ -45,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -89,6 +88,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.skydoves.cloudy.cloudy
 import app.pulse.android.preferences.AppearancePreferences
 import app.pulse.core.ui.ColorPalette
 import app.pulse.core.ui.colorPaletteOf
@@ -242,7 +242,11 @@ fun NewLayoutContent(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .then(if (isShowingLyrics || isShowingQueue) Modifier.blur(96.dp) else Modifier)
+
+                            .cloudy(
+                                radius = 64.dp.px,
+                                enabled = isShowingLyrics || isShowingQueue
+                            )
                     )
                 }
             }
@@ -265,7 +269,7 @@ fun NewLayoutContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = if (isShowingLyrics || isShowingQueue) 0.5f else 0f
+                        alpha = if (isShowingLyrics || isShowingQueue) 0.9f else 0f
                     }
                     .background(colorPalette.background0)
             )
