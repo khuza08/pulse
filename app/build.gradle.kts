@@ -77,7 +77,9 @@ android {
 
     buildTypes {
         debug {
-            manifestPlaceholders["appName"] = "Pulse"
+            // separate id so debug and release install side by side
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appName"] = "Pulse Debug"
         }
 
         release {
