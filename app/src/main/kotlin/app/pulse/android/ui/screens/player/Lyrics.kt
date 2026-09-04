@@ -6,11 +6,9 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -129,8 +127,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val UPDATE_DELAY = 50L
-private const val CENTER_TWEEN_MS = 280
-private const val LYRICS_OFFSET_MS = -280L
+private const val LYRICS_OFFSET_MS = 1000L
 
 private const val ACTIVE_LINE_SCALE = 1.05f
 
@@ -140,14 +137,25 @@ private const val ACTIVE_LINE_SCALE = 1.05f
 // item is not composed yet (seek/initial), jump to its vicinity first; the next
 // tick's measured branch then centers it precisely. `animated` glides a line
 // change to center; drift corrections stay instant so the beat is never lost.
-private suspend fun LazyListState.centerActiveItem(targetIndex: Int, animated: Boolean = false) {
+private suspend fun LazyListState.centerActiveItem(
+    targetIndex: Int,
+    animated: Boolean = false,
+    seek: Boolean = false
+) {
     val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
     if (itemInfo != null) {
         val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-        val center = layoutInfo.viewportStartOffset + viewportHeight / 2
+        val center = layoutInfo.viewportStartOffset + (viewportHeight * 0.35f).toInt()
         val delta = itemInfo.offset + itemInfo.size / 2 - center
         if (abs(delta) > 5) {
-            if (animated) animateScrollBy(delta.toFloat(), tween(CENTER_TWEEN_MS, easing = FastOutSlowInEasing))
+
+            if (animated) animateScrollBy(delta.toFloat(), if (seek) spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMedium
+            ) else spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessLow
+            ))
             else scrollBy(delta.toFloat())
         }
     } else {
@@ -361,8 +369,8 @@ fun Lyrics(
 
     AnimatedVisibility(
         visible = isDisplayed,
-        enter = fadeIn(),
-        exit = fadeOut()
+        enter = fadeIn(spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)),
+        exit = fadeOut(spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow))
     ) {
         if (editing) TextFieldDialog(
         hintText = stringResource(R.string.enter_lyrics),
@@ -567,7 +575,8 @@ fun Lyrics(
                         val targetIndex = currentSynchronizedLyrics.index + 1
                         lazyListState.centerActiveItem(
                             targetIndex,
-                            animated = targetIndex != lastIndex
+                            animated = targetIndex != lastIndex,
+                            seek = abs(targetIndex - lastIndex) > 1
                         )
                         lastIndex = targetIndex
                     }
@@ -590,12 +599,33 @@ fun Lyrics(
                         items = synchronizedLyrics.sentences.values.toImmutableList()
                     ) { index, sentence ->
                         val active = index == synchronizedLyrics.index
-                        val color by animateColorAsState(
-                            if (active) Color.White
-                            else colorPalette.text.copy(alpha = 0.5f)
+                        val distanceFromActive = abs(index - synchronizedLyrics.index)
+                        val lineAlpha = when {
+                            active -> 1f
+                            distanceFromActive == 1 -> 0.52f
+                            distanceFromActive == 2 -> 0.30f
+                            distanceFromActive == 3 -> 0.18f
+                            else -> 0.10f
+                        }
+                        val colorState by animateColorAsState(
+                            targetValue = if (active) Color.White else colorPalette.text,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            label = "lyricLineColor"
                         )
+                        val alpha by animateFloatAsState(
+                            targetValue = lineAlpha,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
+                            label = "lyricLineAlpha"
+                        )
+                        val color = colorState.copy(alpha = alpha)
                         val scale by animateFloatAsState(
-                            targetValue = if (active) ACTIVE_LINE_SCALE else 1f,
+                            targetValue = if (active) ACTIVE_LINE_SCALE else 0.98f,
                             animationSpec = spring(
                                 dampingRatio = Spring.DampingRatioMediumBouncy,
                                 stiffness = Spring.StiffnessMediumLow
