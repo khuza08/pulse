@@ -220,6 +220,9 @@ dependencies {
 
     implementation(libs.compose.cloudy)
 
+    implementation(libs.mlkit.translate)
+    implementation(libs.mlkit.language.id)
+
     implementation(libs.palette)
     implementation(libs.monet)
     runtimeOnly(projects.core.materialCompat)
