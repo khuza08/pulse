@@ -3,6 +3,7 @@ package app.pulse.android.utils
 import app.pulse.android.Database
 import app.pulse.android.models.Playlist
 import app.pulse.android.models.SongPlaylistMap
+import app.pulse.android.service.LOCAL_KEY_PREFIX
 import app.pulse.android.transaction
 import app.pulse.core.data.models.SongEntity
 import app.pulse.android.Dependencies
@@ -89,11 +90,7 @@ object PlaylistImporter {
                 return Result.failure(IllegalStateException("Playlist is empty"))
             }
 
-            val existing = Database.playlistByName(rawPlaylist.name)
-            if (existing != null) {
-                return Result.failure(IllegalStateException("Playlist already imported"))
-            }
-
+            // no duplicate guard: persistImport refreshes an existing playlist by name
             val resolvedTracks = resolveTracks(rawPlaylist.tracks, onProgress)
 
             Result.success(
@@ -161,6 +158,8 @@ object PlaylistImporter {
         onProgress: (suspend (current: Int, total: Int, currentTrack: String) -> Unit)? = null
     ): List<ResolvedTrack> = coroutineScope {
         val semaphore = Semaphore(5)
+        // in-run dedupe: same track twice in one playlist skips re-search
+        val resolvedThisRun = java.util.concurrent.ConcurrentHashMap<String, String>()
 
         tracks.mapIndexed { index, track ->
             async {
@@ -171,9 +170,19 @@ object PlaylistImporter {
                         return@withPermit ResolvedTrack(rawTrack = track, youtubeVideoId = track.videoId)
                     }
 
-                    val searchQuery = buildSearchQuery(track)
-                    val result = searchYouTube(searchQuery, track.title, track.artists, track.durationMs)
-                    result?.let { ResolvedTrack(rawTrack = track, youtubeVideoId = it) }
+                    val key = "${track.title}|${track.artists.joinToString()}"
+                    // reuse this run or any previously imported song (Song.id = videoId)
+                    val cached = resolvedThisRun[key]
+                        ?: Database.songIdByTitleAndArtists(track.title, track.artists.joinToString())
+                    val videoId = if (cached != null && !cached.startsWith(LOCAL_KEY_PREFIX)) cached
+                    else {
+                        val searchQuery = buildSearchQuery(track)
+                        searchYouTube(searchQuery, track.title, track.artists, track.durationMs)?.also {
+                            resolvedThisRun[key] = it
+                        }
+                    }
+
+                    videoId?.let { ResolvedTrack(rawTrack = track, youtubeVideoId = it) }
                 }
             }
         }.awaitAll().filterNotNull()
@@ -260,9 +269,12 @@ object PlaylistImporter {
         }
     }
 
-    fun persistImport(result: ImportResult) {
+    /** Returns how many tracks were actually stored (duplicates collapse: SongPlaylistMap PK = songId+playlistId). */
+    fun persistImport(result: ImportResult): Int {
+        // distinctBy keeps first occurrence, so positions stay stable
+        val unique = result.resolvedTracks.distinctBy { it.youtubeVideoId }
         transaction {
-            result.resolvedTracks.forEach { resolved ->
+            unique.forEach { resolved ->
                 Database.insert(
                     SongEntity(
                         id = resolved.youtubeVideoId,
@@ -278,11 +290,12 @@ object PlaylistImporter {
             if (playlistId > 0) {
                 Database.clearPlaylist(playlistId)
                 Database.insertSongPlaylistMaps(
-                    result.resolvedTracks.mapIndexed { index, resolved ->
+                    unique.mapIndexed { index, resolved ->
                         SongPlaylistMap(songId = resolved.youtubeVideoId, playlistId = playlistId, position = index)
                     }
                 )
             }
         }
+        return unique.size
     }
 }

@@ -43,8 +43,10 @@ fun ImportPlaylistDialog(
 
     var url by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var isFinished by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
     var currentTrack by remember { mutableStateOf<String?>(null) }
+    var importJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     Dialog(onDismissRequest = { if (!isLoading) onDismiss() }) {
         Box(
@@ -122,7 +124,14 @@ fun ImportPlaylistDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                if (!isLoading) {
+                if (isFinished) {
+                    AppleDialogButton(
+                        text = "Close",
+                        containerColor = palette.accent,
+                        contentColor = palette.onAccent,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { onDismiss() }
+                } else if (!isLoading) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth(),
@@ -142,23 +151,32 @@ fun ImportPlaylistDialog(
                         ) {
                             isLoading = true
                             status = null
-                            scope.launch(Dispatchers.IO) {
+                            importJob = scope.launch(Dispatchers.IO) {
                                 try {
                                     val result = PlaylistImporter.importFromUrl(
                                         url = url,
                                         onProgress = { current, total, track ->
                                             withContext(Dispatchers.Main) {
-                                        currentTrack = "$current/$total — $track"
+                                                currentTrack = "$current/$total — $track"
                                             }
                                         }
                                     ).getOrThrow()
 
-                                    PlaylistImporter.persistImport(result)
+                                    val stored = PlaylistImporter.persistImport(result)
+                                    val duplicates = result.resolvedTracks.size - stored
 
                                     withContext(Dispatchers.Main) {
-                                        status = "Imported ${result.resolvedTracks.size} tracks"
+                                        val skipped = result.unresolvedTracks
+                                        val dupNote = if (duplicates > 0) " (${duplicates} duplicates collapsed)" else ""
+                                        status = if (skipped.isEmpty()) {
+                                            "Imported $stored tracks$dupNote"
+                                        } else {
+                                            val names = skipped.take(5).joinToString(", ") { it.title }
+                                            val more = if (skipped.size > 5) ", …" else ""
+                                            "Imported $stored tracks$dupNote, skipped ${skipped.size}:\n$names$more"
+                                        }
                                         isLoading = false
-                                        onDismiss()
+                                        isFinished = true
                                     }
                                 } catch (e: CancellationException) {
                                     throw e
@@ -166,6 +184,7 @@ fun ImportPlaylistDialog(
                                     withContext(Dispatchers.Main) {
                                         status = e.message ?: "Import failed"
                                         isLoading = false
+                                        isFinished = true
                                     }
                                 }
                             }
@@ -177,8 +196,12 @@ fun ImportPlaylistDialog(
                         containerColor = palette.background2,
                         contentColor = palette.text,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = false,
-                    ) { }
+                    ) {
+                        importJob?.cancel()
+                        isLoading = false
+                        isFinished = true
+                        status = null
+                    }
                 }
             }
         }

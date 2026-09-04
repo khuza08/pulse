@@ -655,6 +655,10 @@ interface DatabaseAccessor {
     @RewriteQueriesToDropUnusedColumns
     fun search(query: String): Flow<List<SongModel>>
 
+    // resolution cache: previously imported track > reused video id (no YT search)
+    @Query("SELECT id FROM Song WHERE title = :title AND artistsText = :artists LIMIT 1")
+    suspend fun songIdByTitleAndArtists(title: String, artists: String): String?
+
     @Query("SELECT albumId AS id, NULL AS name FROM SongAlbumMap WHERE songId = :songId")
     suspend fun songAlbumInfo(songId: String): Info?
 
