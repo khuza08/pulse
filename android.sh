@@ -5,6 +5,7 @@
 # Usage: bash android.sh [--build-only] [-s <serial>]
 #   --build-only   build the APK without installing
 #   -s <serial>    install only to this device (adb devices serial)
+clear
 
 set -euo pipefail
 
