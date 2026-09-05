@@ -8,6 +8,7 @@ import android.media.AudioManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -35,6 +36,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -79,6 +82,7 @@ import app.pulse.android.service.PlayerService
 import app.pulse.android.ui.components.SeekBar
 import app.pulse.android.utils.bold
 import app.pulse.android.utils.isMlKitSupportedLang
+import app.pulse.android.utils.medium
 import app.pulse.android.utils.forceSeekToNext
 import app.pulse.android.utils.forceSeekToPrevious
 import app.pulse.android.utils.semiBold
@@ -764,70 +768,181 @@ private fun TranslationLanguageDialog(
 ) {
     val (colorPalette, typography) = LocalAppearance.current
     val selected = PlayerPreferences.lyricsTranslationLanguage
+    val context = LocalContext.current
+    var query by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .padding(all = 48.dp)
-                .background(colorPalette.background1, RoundedCornerShape(8.dp))
-                .padding(vertical = 16.dp)
-                .verticalScroll(rememberScrollState())
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            BasicText(
-                text = stringResource(R.string.lyrics_translation_language),
-                style = typography.s.semiBold,
-                modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp)
-            )
-
-            if (translationActive) Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onHide() }
-                    .padding(vertical = 12.dp, horizontal = 24.dp)
+                    .width(320.dp)
+                    .fillMaxHeight(0.5f)
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(40.dp))
             ) {
-                BasicText(
-                    text = stringResource(R.string.hide_translation),
-                    style = typography.m.semiBold.copy(color = colorPalette.accent),
-                    modifier = Modifier.weight(1f)
-                )
-            }
 
-            val unsupported = LyricsTranslationLanguage.entries.firstOrNull {
-                it != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(it.langCode)
-            }
-            if (unsupported != null) {
-                BasicText(
-                    text = stringResource(R.string.lyrics_translation_unsupported_languages),
-                    style = typography.xs.semiBold.copy(color = colorPalette.textSecondary),
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp)
-                )
-            }
-
-            LyricsTranslationLanguage.entries.forEach { lang ->
-                if (lang != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(lang.langCode)) return@forEach
-                val isCurrent = translationActive && lang == selected
-                Row(
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .background(colorPalette.background1)
+                ) {
+                if (translationActive) Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onSelectLanguage(lang) }
-                        .padding(vertical = 12.dp, horizontal = 24.dp)
+                        .clickable { onHide() }
+                        .padding(vertical = 10.dp, horizontal = 16.dp)
                 ) {
                     BasicText(
-                        text = if (lang == LyricsTranslationLanguage.Device)
-                            stringResource(R.string.device_language)
-                        else Locale.forLanguageTag(lang.langCode)
-                            .getDisplayLanguage(Locale.getDefault()),
-                        style = typography.m.semiBold.copy(
-                            color = if (isCurrent) colorPalette.accent else colorPalette.text
-                        ),
+                        text = stringResource(R.string.hide_translation),
+                        style = typography.m.semiBold.copy(color = colorPalette.accent),
                         modifier = Modifier.weight(1f)
                     )
-                    if (isCurrent) BasicText(
-                        text = "\u2713",
-                        style = typography.m.bold.copy(color = colorPalette.accent)
+                }
+
+                val unsupported = LyricsTranslationLanguage.entries.firstOrNull {
+                    it != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(it.langCode)
+                }
+                if (unsupported != null) {
+                    BasicText(
+                        text = stringResource(R.string.lyrics_translation_unsupported_languages),
+                        style = typography.xs.semiBold.copy(color = colorPalette.textSecondary),
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 18.dp)
                     )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Spacer(Modifier.height(72.dp))
+
+                        val langLabel: (LyricsTranslationLanguage) -> String = { lang ->
+                            if (lang == LyricsTranslationLanguage.Device) context.getString(R.string.device_language)
+                            else Locale.forLanguageTag(lang.langCode).getDisplayLanguage(Locale.getDefault())
+                        }
+                        val filteredLanguages = LyricsTranslationLanguage.entries.filter { lang ->
+                            if (lang != LyricsTranslationLanguage.Device && !isMlKitSupportedLang(lang.langCode)) return@filter false
+                            query.isBlank() || langLabel(lang).contains(query.trim(), ignoreCase = true)
+                        }
+
+                        filteredLanguages.forEach { lang ->
+                            val isCurrent = translationActive && lang == selected
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onSelectLanguage(lang) }
+                                    .padding(vertical = 14.dp, horizontal = 16.dp)
+                            ) {
+                                BasicText(
+                                    text = langLabel(lang),
+                                    style = typography.m.semiBold.copy(
+                                        color = if (isCurrent) colorPalette.accent else colorPalette.text
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (isCurrent) BasicText(
+                                    text = "\u2713",
+                                    style = typography.m.bold.copy(color = colorPalette.accent)
+                                )
+                            }
+                        }
+
+                        // end padding
+                        Spacer(Modifier.height(24.dp))
+                    }
+
+                    // top fade
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .height(96.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        colorPalette.background1,
+                                        colorPalette.background1.copy(alpha = 0.8f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                    )
+
+                    // bottom
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        colorPalette.background1
+                                    )
+                                )
+                            )
+                    )
+
+                    // search pill
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(start = 16.dp, end = 16.dp, top = 14.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(colorPalette.background1)
+                            .border(
+                                width = 0.5.dp,
+                                color = colorPalette.textSecondary.copy(alpha = 0.35f),
+                                shape = RoundedCornerShape(percent = 50)
+                            )
+                            .padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp)
+                    ) {
+                        BasicTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            textStyle = typography.l.medium,
+                            singleLine = true,
+                            maxLines = 1,
+                            cursorBrush = SolidColor(colorPalette.text.copy(alpha = 0.4f)),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (query.isEmpty()) BasicText(
+                                        text = stringResource(R.string.search_placeholder),
+                                        maxLines = 1,
+                                        style = typography.l.medium.copy(
+                                            color = colorPalette.textSecondary.copy(alpha = 0.6f)
+                                        )
+                                    )
+                                    innerTextField()
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (query.isNotEmpty()) Image(
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(colorPalette.textSecondary),
+                            modifier = Modifier
+                                .clickable { query = "" }
+                                .size(16.dp)
+                        )
+                    }
+                }
                 }
             }
         }
