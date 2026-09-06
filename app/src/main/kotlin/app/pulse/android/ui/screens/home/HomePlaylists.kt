@@ -1,21 +1,26 @@
 package app.pulse.android.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -24,7 +29,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.pulse.android.Database
@@ -40,10 +47,12 @@ import app.pulse.android.query
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
+import app.pulse.android.ui.components.themed.HeaderPillIconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.NewMenu
 import app.pulse.android.ui.components.NewMenuDivider
 import app.pulse.android.ui.components.NewMenuEntry
+import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.ImportPlaylistDialog
 import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.VerticalDivider
@@ -116,6 +125,16 @@ fun HomePlaylists(
         title = stringResource(R.string.playlists),
         lazyGridState = lazyGridState,
         headerActions = {
+            val (pillPalette, _) = LocalAppearance.current
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(pillPalette.background2)
+                    .border(0.5.dp, pillPalette.textSecondary.copy(alpha = 0.35f), RoundedCornerShape(percent = 50))
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             HeaderIconButton(
                 icon = R.drawable.add,
                 onClick = { isCreatingANewPlaylist = true }
@@ -130,7 +149,9 @@ fun HomePlaylists(
                     onClick = { isMenuVisible = !isMenuVisible }
                 )
 
-                NewMenu(
+
+                Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                    NewMenu(
                     visible = isMenuVisible,
                     onDismiss = { isMenuVisible = false }
                 ) {
@@ -183,17 +204,25 @@ fun HomePlaylists(
                     }
                 )
                 }
+                }                }
+                }
             }
-        }
     ) {
         LazyVerticalGrid(
             state = lazyGridState,
             columns = if (UIStatePreferences.playlistsAsGrid)
                 GridCells.Adaptive(Dimensions.thumbnails.playlist + Dimensions.items.alternativePadding * 2)
             else GridCells.Fixed(1),
-            contentPadding = LocalPlayerAwareWindowInsets.current
-                .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
-                .asPaddingValues(),
+            contentPadding = PaddingValues(
+                top = LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
+                    .asPaddingValues()
+                    .calculateTopPadding() + 32.dp,
+                bottom = LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
+                    .asPaddingValues()
+                    .calculateBottomPadding()
+            ),
             horizontalArrangement = Arrangement.spacedBy(Dimensions.items.alternativePadding),
             verticalArrangement = if (UIStatePreferences.playlistsAsGrid)
                 Arrangement.spacedBy(Dimensions.items.alternativePadding)
