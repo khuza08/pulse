@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -47,7 +49,8 @@ import app.pulse.core.ui.LocalAppearance
 
 private val DefaultMenuShape: Shape = RoundedCornerShape(16.dp)
 
-private val MenuGap: Int = 8
+private val MenuGap: Dp = 12.dp
+private val MenuGapX: Dp = 10.dp
 
 @Composable
 fun NewMenu(
@@ -66,8 +69,8 @@ fun NewMenu(
 
     Popup(
         onDismissRequest = onDismiss,
-        alignment = Alignment.BottomEnd,
-        offset = IntOffset(0, MenuGap)
+        alignment = Alignment.TopEnd,
+        offset = with(LocalDensity.current) { IntOffset(MenuGapX.roundToPx(), MenuGap.roundToPx()) }
     ) {
         AnimatedVisibility(
             visibleState = transitionState,
