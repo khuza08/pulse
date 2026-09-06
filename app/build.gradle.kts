@@ -78,14 +78,14 @@ android {
         debug {
             // separate id so debug and release install side by side
             applicationIdSuffix = ".debug"
-            manifestPlaceholders["appName"] = "Pulse Debug"
+            manifestPlaceholders["appName"] = "libremusic Debug"
         }
 
         release {
             versionNameSuffix = "-RELEASE"
             isMinifyEnabled = true
             isShrinkResources = true
-            manifestPlaceholders["appName"] = "Pulse"
+            manifestPlaceholders["appName"] = "libremusic"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
