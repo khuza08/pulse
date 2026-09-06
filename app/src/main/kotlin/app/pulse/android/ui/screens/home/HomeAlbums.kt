@@ -33,6 +33,7 @@ import app.pulse.android.models.Album
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.items.AlbumItem
 import app.pulse.android.ui.screens.Route
@@ -106,7 +107,7 @@ fun HomeAlbums(
                 .fillMaxSize()
         ) {
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
             }
 
             items(

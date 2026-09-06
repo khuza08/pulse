@@ -36,6 +36,7 @@ import app.pulse.android.models.Artist
 import app.pulse.android.preferences.OrderPreferences
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.items.ArtistItem
 import app.pulse.android.ui.screens.Route
@@ -112,7 +113,7 @@ fun HomeArtistList(
                 .fillMaxSize()
         ) {
             item(key = "spacer", span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
             }
 
             items(items = items, key = Artist::id) { artist ->

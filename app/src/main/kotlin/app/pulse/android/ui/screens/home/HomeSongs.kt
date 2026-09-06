@@ -66,6 +66,7 @@ import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.themed.ConfirmationDialog
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.InHistoryMediaItemMenu
 import app.pulse.android.ui.components.themed.TextField
@@ -229,7 +230,7 @@ fun HomeSongs(
                 .fillMaxSize()
         ) {
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
             }
 
             items(

@@ -47,6 +47,7 @@ import app.pulse.android.preferences.UIStatePreferences
 import app.pulse.android.query
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.HeaderPillIconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
@@ -220,7 +221,7 @@ fun HomePlaylists(
                 top = LocalPlayerAwareWindowInsets.current
                     .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
                     .asPaddingValues()
-                    .calculateTopPadding() + 32.dp,
+                    .calculateTopPadding() + 0.dp,
                 bottom = LocalPlayerAwareWindowInsets.current
                     .only(WindowInsetsSides.Vertical + WindowInsetsSides.End)
                     .asPaddingValues()
@@ -235,7 +236,7 @@ fun HomePlaylists(
                 .background(colorPalette.background0)
         ) {
             item(key = "spacer", span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
             }
 
             items(

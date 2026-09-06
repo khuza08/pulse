@@ -22,11 +22,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import app.pulse.android.utils.medium
 import app.pulse.core.ui.LocalAppearance
+
+
+val CollapsingHeaderContentSpacer: Dp = 96.dp
 
 @Composable
 fun CollapsingHeader(

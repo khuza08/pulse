@@ -57,6 +57,7 @@ import app.pulse.android.ui.components.LocalMenuState
 import app.pulse.android.ui.components.ShimmerHost
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.NonQueuedMediaItemMenu
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.themed.TextPlaceholder
@@ -111,7 +112,7 @@ fun HomeDiscovery(
 
     val sectionTextModifier = Modifier
         .padding(horizontal = 16.dp)
-        .padding(top = 24.dp, bottom = 8.dp)
+        .padding(top = 0.dp, bottom = 8.dp)
         .padding(endPaddingValues)
 
     var discoverPage by persist<Result<Innertube.DiscoverPage>>("home/discovery")
@@ -181,7 +182,7 @@ fun HomeDiscovery(
                             .asPaddingValues()
                     )
             ) {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
 
             discoverPage?.getOrNull()?.let { page ->
                 if (page.moods.isNotEmpty()) {

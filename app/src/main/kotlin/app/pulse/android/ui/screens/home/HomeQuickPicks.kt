@@ -69,6 +69,7 @@ import app.pulse.android.ui.screens.Route
 import app.pulse.android.ui.screens.settingsRoute
 import app.pulse.android.ui.components.themed.HeaderCircleIconButton
 import app.pulse.android.ui.components.themed.CollapsingHeader
+import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.utils.asMediaItem
 import androidx.media3.common.MediaItem
 import app.pulse.android.utils.center
@@ -248,7 +249,7 @@ fun QuickPicks(
                             .asPaddingValues()
                     )
             ) {
-                Spacer(modifier = Modifier.height(96.dp))
+                Spacer(modifier = Modifier.height(CollapsingHeaderContentSpacer))
 
             relatedPageResult?.getOrNull()?.let { related ->
                 // ponytail: shared click handler extracted to avoid duplication
