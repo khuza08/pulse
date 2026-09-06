@@ -248,7 +248,7 @@ fun PlaylistItem(
     val texts: @Composable ColumnScope.() -> Unit = {
         BasicText(
             text = name.orEmpty(),
-            style = typography.xs.semiBold.let { if (alternative && channelName.isNullOrBlank()) it.center else it },
+            style = typography.m.semiBold.let { if (alternative && channelName.isNullOrBlank()) it.center else it },
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
