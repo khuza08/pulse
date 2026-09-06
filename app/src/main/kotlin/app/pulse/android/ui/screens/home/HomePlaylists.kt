@@ -1,8 +1,5 @@
 package app.pulse.android.ui.screens.home
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.pulse.android.Database
@@ -45,6 +41,9 @@ import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScroll
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.HeaderIconButton
 import app.pulse.android.ui.components.themed.SecondaryTextButton
+import app.pulse.android.ui.components.NewMenu
+import app.pulse.android.ui.components.NewMenuDivider
+import app.pulse.android.ui.components.NewMenuEntry
 import app.pulse.android.ui.components.themed.ImportPlaylistDialog
 import app.pulse.android.ui.components.themed.TextFieldDialog
 import app.pulse.android.ui.components.themed.VerticalDivider
@@ -55,7 +54,6 @@ import app.pulse.android.ui.screens.settings.SettingsEntryGroupText
 import app.pulse.android.ui.screens.settings.SettingsGroupSpacer
 import app.pulse.compose.persist.persist
 import app.pulse.compose.persist.persistList
-import app.pulse.core.data.enums.BuiltInPlaylist
 import app.pulse.core.data.enums.PlaylistSortBy
 import app.pulse.core.data.enums.SortOrder
 import app.pulse.core.ui.Dimensions
@@ -69,7 +67,6 @@ import app.pulse.providers.piped.models.PlaylistPreview as PipedPlaylistPreview
 @Route
 @Composable
 fun HomePlaylists(
-    onBuiltInPlaylist: (BuiltInPlaylist) -> Unit,
     onPlaylistClick: (Playlist) -> Unit,
     onPipedPlaylistClick: (Session, PipedPlaylistPreview) -> Unit,
     onSearchClick: () -> Unit
@@ -78,6 +75,7 @@ fun HomePlaylists(
 
     var isCreatingANewPlaylist by rememberSaveable { mutableStateOf(false) }
     var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
+    var isMenuVisible by rememberSaveable { mutableStateOf(false) }
 
     if (isImportingPlaylist) ImportPlaylistDialog(
         onDismiss = { isImportingPlaylist = false }
@@ -111,15 +109,7 @@ fun HomePlaylists(
         }
     }
 
-    val sortOrderIconRotation by animateFloatAsState(
-        targetValue = if (playlistSortOrder == SortOrder.Ascending) 0f else 180f,
-        animationSpec = tween(durationMillis = 400, easing = LinearEasing),
-        label = ""
-    )
-
     val lazyGridState = rememberLazyGridState()
-
-    val builtInPlaylists by BuiltInPlaylistScreen.shownPlaylistsAsState()
 
     Box {
     CollapsingHeader(
@@ -134,41 +124,66 @@ fun HomePlaylists(
                 icon = R.drawable.import_playlist, // this is the playlist page
                 onClick = { isImportingPlaylist = true }
             )
-            HeaderIconButton(
-                icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
-                onClick = {
-                    UIStatePreferences.playlistsAsGrid = !UIStatePreferences.playlistsAsGrid
+            Box {
+                HeaderIconButton(
+                    icon = R.drawable.hamburger,
+                    onClick = { isMenuVisible = !isMenuVisible }
+                )
+
+                NewMenu(
+                    visible = isMenuVisible,
+                    onDismiss = { isMenuVisible = false }
+                ) {
+                NewMenuEntry(
+                    icon = R.drawable.medical,
+                    text = "Sort by song count",
+                    checked = playlistSortBy == PlaylistSortBy.SongCount,
+                    onClick = {
+                        playlistSortBy = PlaylistSortBy.SongCount
+                        isMenuVisible = false
+                    }
+                )
+                NewMenuEntry(
+                    icon = R.drawable.text,
+                    text = "Sort by name",
+                    checked = playlistSortBy == PlaylistSortBy.Name,
+                    onClick = {
+                        playlistSortBy = PlaylistSortBy.Name
+                        isMenuVisible = false
+                    }
+                )
+                NewMenuEntry(
+                    icon = R.drawable.time,
+                    text = "Sort by date added",
+                    checked = playlistSortBy == PlaylistSortBy.DateAdded,
+                    onClick = {
+                        playlistSortBy = PlaylistSortBy.DateAdded
+                        isMenuVisible = false
+                    }
+                )
+
+                NewMenuDivider()
+
+                NewMenuEntry(
+                    icon = R.drawable.arrow_up,
+                    text = "Sort order",
+                    secondaryText = if (playlistSortOrder == SortOrder.Ascending) "Ascending" else "Descending",
+                    onClick = {
+                        playlistSortOrder = !playlistSortOrder
+                        isMenuVisible = false
+                    }
+                )
+                NewMenuEntry(
+                    icon = if (UIStatePreferences.playlistsAsGrid) R.drawable.grid else R.drawable.list,
+                    text = "Layout",
+                    secondaryText = if (UIStatePreferences.playlistsAsGrid) "Grid" else "List",
+                    onClick = {
+                        UIStatePreferences.playlistsAsGrid = !UIStatePreferences.playlistsAsGrid
+                        isMenuVisible = false
+                    }
+                )
                 }
-            )
-
-            VerticalDivider(modifier = Modifier.height(8.dp))
-
-            HeaderIconButton(
-                icon = R.drawable.medical,
-                enabled = playlistSortBy == PlaylistSortBy.SongCount,
-                onClick = { playlistSortBy = PlaylistSortBy.SongCount }
-            )
-
-            HeaderIconButton(
-                icon = R.drawable.text,
-                enabled = playlistSortBy == PlaylistSortBy.Name,
-                onClick = { playlistSortBy = PlaylistSortBy.Name }
-            )
-
-            HeaderIconButton(
-                icon = R.drawable.time,
-                enabled = playlistSortBy == PlaylistSortBy.DateAdded,
-                onClick = { playlistSortBy = PlaylistSortBy.DateAdded }
-            )
-
-            Spacer(modifier = Modifier.width(2.dp))
-
-            HeaderIconButton(
-                icon = R.drawable.arrow_up,
-                color = colorPalette.text,
-                onClick = { playlistSortOrder = !playlistSortOrder },
-                modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
-            )
+            }
         }
     ) {
         LazyVerticalGrid(
@@ -189,67 +204,6 @@ fun HomePlaylists(
         ) {
             item(key = "spacer", span = { GridItemSpan(maxLineSpan) }) {
                 Spacer(modifier = Modifier.height(80.dp))
-            }
-
-            // TODO: clean up (also in BuiltInPlaylistScreen): icon etc. could live in BuiltInPlaylist (cleans up duplicate code mess)
-
-            if (BuiltInPlaylist.Favorites in builtInPlaylists) item(key = "favorites") {
-                PlaylistItem(
-                    icon = R.drawable.heart,
-                    colorTint = colorPalette.red,
-                    name = stringResource(R.string.favorites),
-                    songCount = null,
-                    thumbnailSize = Dimensions.thumbnails.playlist,
-                    alternative = UIStatePreferences.playlistsAsGrid,
-                    modifier = Modifier
-                        .animateItem()
-                        .clickable { onBuiltInPlaylist(BuiltInPlaylist.Favorites) }
-                )
-            }
-
-            if (BuiltInPlaylist.Offline in builtInPlaylists) item(key = "offline") {
-                PlaylistItem(
-                    icon = R.drawable.airplane,
-                    colorTint = colorPalette.blue,
-                    name = stringResource(R.string.offline),
-                    songCount = null,
-                    thumbnailSize = Dimensions.thumbnails.playlist,
-                    alternative = UIStatePreferences.playlistsAsGrid,
-                    modifier = Modifier
-                        .animateItem()
-                        .clickable { onBuiltInPlaylist(BuiltInPlaylist.Offline) }
-                )
-            }
-
-            if (BuiltInPlaylist.Top in builtInPlaylists) item(key = "top") {
-                PlaylistItem(
-                    icon = R.drawable.trending,
-                    colorTint = colorPalette.red,
-                    name = stringResource(
-                        R.string.format_my_top_playlist,
-                        DataPreferences.topListLength
-                    ),
-                    songCount = null,
-                    thumbnailSize = Dimensions.thumbnails.playlist,
-                    alternative = UIStatePreferences.playlistsAsGrid,
-                    modifier = Modifier
-                        .animateItem()
-                        .clickable { onBuiltInPlaylist(BuiltInPlaylist.Top) }
-                )
-            }
-
-            if (BuiltInPlaylist.History in builtInPlaylists) item(key = "history") {
-                PlaylistItem(
-                    icon = R.drawable.history,
-                    colorTint = colorPalette.textDisabled,
-                    name = stringResource(R.string.history),
-                    songCount = null,
-                    thumbnailSize = Dimensions.thumbnails.playlist,
-                    alternative = UIStatePreferences.playlistsAsGrid,
-                    modifier = Modifier
-                        .animateItem()
-                        .clickable { onBuiltInPlaylist(BuiltInPlaylist.History) }
-                )
             }
 
             items(

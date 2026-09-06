@@ -107,7 +107,6 @@ fun HomeScreen() {
                         )
 
                         3 -> HomePlaylists(
-                            onBuiltInPlaylist = { builtInPlaylistRoute(it) },
                             onPlaylistClick = { localPlaylistRoute(it.id) },
                             onPipedPlaylistClick = { session, playlist ->
                                 pipedPlaylistRoute(
