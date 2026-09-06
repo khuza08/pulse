@@ -4,12 +4,16 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -60,6 +64,39 @@ fun HeaderIconButton(
         .padding(all = 4.dp)
         .size(18.dp)
 )
+
+@Composable
+fun HeaderPillIconButton(
+    onClick: () -> Unit,
+    @DrawableRes icon: Int,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val (colorPalette) = LocalAppearance.current
+    Box(
+        modifier = modifier
+            .height(42.dp)
+            .widthIn(min = 42.dp)
+            .clip(RoundedCornerShape(percent = 50))
+            .background(colorPalette.background2)
+            .border(0.5.dp, colorPalette.textSecondary.copy(alpha = 0.35f), RoundedCornerShape(percent = 50))
+            .clickable(
+                enabled = enabled,
+                onClick = onClick,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple()
+            )
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(if (enabled) colorPalette.text else colorPalette.textDisabled),
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
 
 @Composable
 fun HeaderCircleIconButton(
