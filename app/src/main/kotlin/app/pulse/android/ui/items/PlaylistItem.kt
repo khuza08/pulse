@@ -5,11 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.pulse.android.Database
+import app.pulse.android.R
 import app.pulse.android.models.PlaylistPreview
 import app.pulse.android.ui.components.themed.TextPlaceholder
 import app.pulse.android.utils.center
@@ -84,7 +87,8 @@ fun PlaylistItem(
     playlist: PlaylistPreview,
     thumbnailSize: Dp,
     modifier: Modifier = Modifier,
-    alternative: Boolean = false
+    alternative: Boolean = false,
+    showChevron: Boolean = false
 ) {
     val thumbnailSizePx = thumbnailSize.px
     val thumbnails by remember {
@@ -133,7 +137,8 @@ fun PlaylistItem(
         channelName = null,
         thumbnailSize = thumbnailSize,
         modifier = modifier,
-        alternative = alternative
+        alternative = alternative,
+        showChevron = showChevron
     )
 }
 
@@ -161,7 +166,8 @@ fun PlaylistItem(
     channelName: String?,
     thumbnailSize: Dp,
     modifier: Modifier = Modifier,
-    alternative: Boolean = false
+    alternative: Boolean = false,
+    showChevron: Boolean = false
 ) = PlaylistItem(
     thumbnailContent = {
         thumbnailUrl?.thumbnail(thumbnailSize.px)?.let { url ->
@@ -178,7 +184,8 @@ fun PlaylistItem(
     channelName = channelName,
     thumbnailSize = thumbnailSize,
     modifier = modifier,
-    alternative = alternative
+    alternative = alternative,
+    showChevron = showChevron
 )
 
 @Composable
@@ -189,7 +196,8 @@ fun PlaylistItem(
     channelName: String?,
     thumbnailSize: Dp,
     modifier: Modifier = Modifier,
-    alternative: Boolean = false
+    alternative: Boolean = false,
+    showChevron: Boolean = false
 ) = ItemContainer(
     alternative = alternative,
     thumbnailSize = thumbnailSize,
@@ -237,7 +245,7 @@ fun PlaylistItem(
         }
     }
 
-    ItemInfoContainer(modifier = if (alternative && channelName.isNullOrBlank()) centeredModifier else Modifier) {
+    val texts: @Composable ColumnScope.() -> Unit = {
         BasicText(
             text = name.orEmpty(),
             style = typography.xs.semiBold.let { if (alternative && channelName.isNullOrBlank()) it.center else it },
@@ -250,6 +258,26 @@ fun PlaylistItem(
             style = typography.xs.semiBold.secondary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+
+    if (alternative) {
+        ItemInfoContainer(
+            modifier = if (channelName.isNullOrBlank()) centeredModifier else Modifier
+        ) { texts() }
+    } else Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ItemInfoContainer(modifier = Modifier.weight(1f)) { texts() }
+
+        if (showChevron) Image(
+            painter = painterResource(R.drawable.chevron_forward),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(colorPalette.textSecondary),
+            modifier = Modifier
+                .padding(start = Dimensions.items.gap, end = 12.dp)
+                .size(18.dp)
         )
     }
 }
