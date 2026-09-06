@@ -131,7 +131,7 @@ fun HomePlaylists(
                 onClick = { isCreatingANewPlaylist = true }
             )
             HeaderIconButton(
-                icon = R.drawable.download,
+                icon = R.drawable.import_playlist, // this is the playlist page
                 onClick = { isImportingPlaylist = true }
             )
             HeaderIconButton(
