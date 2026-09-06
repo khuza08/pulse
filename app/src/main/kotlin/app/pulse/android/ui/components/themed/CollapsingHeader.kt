@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
@@ -33,6 +34,8 @@ fun CollapsingHeader(
     scrollState: ScrollState,
     modifier: Modifier = Modifier,
     headerActions: @Composable RowScope.() -> Unit = {},
+    expandedFontSize: TextUnit = 36.sp,
+    collapsedFontSize: TextUnit = 26.sp,
     content: @Composable () -> Unit
 ) {
     val scrollPixels = scrollState.value.toFloat()
@@ -41,6 +44,8 @@ fun CollapsingHeader(
         scrollPixels = scrollPixels,
         modifier = modifier,
         headerActions = headerActions,
+        expandedFontSize = expandedFontSize,
+        collapsedFontSize = collapsedFontSize,
         content = content
     )
 }
@@ -51,6 +56,8 @@ fun CollapsingHeader(
     lazyListState: LazyListState,
     modifier: Modifier = Modifier,
     headerActions: @Composable RowScope.() -> Unit = {},
+    expandedFontSize: TextUnit = 38.sp,
+    collapsedFontSize: TextUnit = 28.sp,
     content: @Composable () -> Unit
 ) {
     val scrollPixels = if (lazyListState.firstVisibleItemIndex > 0) {
@@ -58,12 +65,14 @@ fun CollapsingHeader(
     } else {
         lazyListState.firstVisibleItemScrollOffset.toFloat()
     }
-    
+
     CollapsingHeaderInternal(
         title = title,
         scrollPixels = scrollPixels,
         modifier = modifier,
         headerActions = headerActions,
+        expandedFontSize = expandedFontSize,
+        collapsedFontSize = collapsedFontSize,
         content = content
     )
 }
@@ -74,6 +83,8 @@ fun CollapsingHeader(
     lazyGridState: LazyGridState,
     modifier: Modifier = Modifier,
     headerActions: @Composable RowScope.() -> Unit = {},
+    expandedFontSize: TextUnit = 38.sp,
+    collapsedFontSize: TextUnit = 28.sp,
     content: @Composable () -> Unit
 ) {
     val scrollPixels = if (lazyGridState.firstVisibleItemIndex > 0) {
@@ -81,12 +92,14 @@ fun CollapsingHeader(
     } else {
         lazyGridState.firstVisibleItemScrollOffset.toFloat()
     }
-    
+
     CollapsingHeaderInternal(
         title = title,
         scrollPixels = scrollPixels,
         modifier = modifier,
         headerActions = headerActions,
+        expandedFontSize = expandedFontSize,
+        collapsedFontSize = collapsedFontSize,
         content = content
     )
 }
@@ -98,6 +111,8 @@ private fun CollapsingHeaderInternal(
     scrollPixels: Float,
     modifier: Modifier = Modifier,
     headerActions: @Composable RowScope.() -> Unit = {},
+    expandedFontSize: TextUnit = 38.sp,
+    collapsedFontSize: TextUnit = 28.sp,
     content: @Composable () -> Unit
 ) {
     val (colorPalette, typography) = LocalAppearance.current
@@ -110,10 +125,10 @@ private fun CollapsingHeaderInternal(
     val collapseProgress = (scrollPixels / collapseThresholdPx).coerceIn(0f, 1f)
 
     val currentHeight = lerp(expandedHeight, collapsedHeight, collapseProgress)
-    
+
     // Lerp text style
-    val expandedStyle = typography.xxl.medium.copy(fontSize = 38.sp)
-    val collapsedStyle = typography.l.medium.copy(fontSize = 28.sp)
+    val expandedStyle = typography.xxl.medium.copy(fontSize = expandedFontSize)
+    val collapsedStyle = typography.l.medium.copy(fontSize = collapsedFontSize)
     val currentFontSize = androidx.compose.ui.unit.lerp(expandedStyle.fontSize, collapsedStyle.fontSize, collapseProgress)
     val currentStyle = expandedStyle.copy(fontSize = currentFontSize)
 
