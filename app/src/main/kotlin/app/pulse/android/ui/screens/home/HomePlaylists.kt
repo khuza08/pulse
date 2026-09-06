@@ -241,7 +241,7 @@ fun HomePlaylists(
             ) { playlistPreview ->
                 PlaylistItem(
                     playlist = playlistPreview,
-                    thumbnailSize = Dimensions.thumbnails.playlist,
+                    thumbnailSize = if (UIStatePreferences.playlistsAsGrid) Dimensions.thumbnails.playlist else Dimensions.thumbnails.playlist - 24.dp,
                     alternative = UIStatePreferences.playlistsAsGrid,
                     modifier = Modifier
                         .clickable(onClick = { onPlaylistClick(playlistPreview.playlist) })
@@ -272,7 +272,7 @@ fun HomePlaylists(
                                 songCount = playlist.videoCount,
                                 channelName = null,
                                 thumbnailUrl = playlist.thumbnailUrl.toString(),
-                                thumbnailSize = Dimensions.thumbnails.playlist,
+                                thumbnailSize = if (UIStatePreferences.playlistsAsGrid) Dimensions.thumbnails.playlist else Dimensions.thumbnails.playlist - 8.dp,
                                 alternative = UIStatePreferences.playlistsAsGrid,
                                 modifier = Modifier
                                     .clickable(onClick = {
