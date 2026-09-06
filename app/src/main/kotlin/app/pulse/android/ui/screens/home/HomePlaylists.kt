@@ -1,12 +1,10 @@
 package app.pulse.android.ui.screens.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -31,7 +29,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,7 +46,7 @@ import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScroll
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
-import app.pulse.android.ui.components.themed.HeaderPillIconButton
+import app.pulse.android.ui.components.themed.HeaderPillRow
 import app.pulse.android.ui.components.themed.SecondaryTextButton
 import app.pulse.android.ui.components.NewMenu
 import app.pulse.android.ui.components.NewMenuDivider
@@ -129,16 +126,7 @@ fun HomePlaylists(
         expandedFontSize = 36.sp,
         collapsedFontSize = 26.sp,
         headerActions = {
-            val (pillPalette, _) = LocalAppearance.current
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(percent = 50))
-                    .background(pillPalette.background2)
-                    .border(0.5.dp, pillPalette.textSecondary.copy(alpha = 0.35f), RoundedCornerShape(percent = 50))
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            HeaderPillRow {
             HeaderIconButton(
                 icon = R.drawable.add,
                 onClick = { isCreatingANewPlaylist = true }

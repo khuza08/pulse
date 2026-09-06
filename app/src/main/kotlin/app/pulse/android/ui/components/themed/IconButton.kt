@@ -7,7 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -66,36 +69,21 @@ fun HeaderIconButton(
 )
 
 @Composable
-fun HeaderPillIconButton(
-    onClick: () -> Unit,
-    @DrawableRes icon: Int,
+fun HeaderPillRow(
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
 ) {
-    val (colorPalette) = LocalAppearance.current
-    Box(
+    val (colorPalette, _) = LocalAppearance.current
+    Row(
         modifier = modifier
-            .height(42.dp)
-            .widthIn(min = 42.dp)
             .clip(RoundedCornerShape(percent = 50))
             .background(colorPalette.background2)
             .border(0.5.dp, colorPalette.textSecondary.copy(alpha = 0.35f), RoundedCornerShape(percent = 50))
-            .clickable(
-                enabled = enabled,
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(if (enabled) colorPalette.text else colorPalette.textDisabled),
-            modifier = Modifier.size(20.dp)
-        )
-    }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content
+    )
 }
 
 @Composable

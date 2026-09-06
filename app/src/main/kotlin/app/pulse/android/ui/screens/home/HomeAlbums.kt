@@ -20,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.pulse.android.Database
@@ -35,6 +37,10 @@ import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScroll
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
+import app.pulse.android.ui.components.themed.HeaderPillRow
+import app.pulse.android.ui.components.NewMenu
+import app.pulse.android.ui.components.NewMenuDivider
+import app.pulse.android.ui.components.NewMenuEntry
 import app.pulse.android.ui.items.AlbumItem
 import app.pulse.android.ui.screens.Route
 import app.pulse.compose.persist.persist
@@ -57,11 +63,7 @@ fun HomeAlbums(
         Database.albums(albumSortBy, albumSortOrder).collect { items = it }
     }
 
-    val sortOrderIconRotation by animateFloatAsState(
-        targetValue = if (albumSortOrder == SortOrder.Ascending) 0f else 180f,
-        animationSpec = tween(durationMillis = 400, easing = LinearEasing),
-        label = ""
-    )
+    var isMenuVisible by rememberSaveable { mutableStateOf(false) }
 
     val lazyListState = rememberLazyListState()
 
@@ -70,32 +72,61 @@ fun HomeAlbums(
         title = stringResource(R.string.albums),
         lazyListState = lazyListState,
         headerActions = {
-            HeaderIconButton(
-                icon = R.drawable.calendar,
-                enabled = albumSortBy == AlbumSortBy.Year,
-                onClick = { albumSortBy = AlbumSortBy.Year }
-            )
+            HeaderPillRow {
+                Box {
+                    HeaderIconButton(
+                        icon = R.drawable.hamburger,
+                        onClick = { isMenuVisible = !isMenuVisible }
+                    )
 
-            HeaderIconButton(
-                icon = R.drawable.text,
-                enabled = albumSortBy == AlbumSortBy.Title,
-                onClick = { albumSortBy = AlbumSortBy.Title }
-            )
+                    Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                        NewMenu(
+                        visible = isMenuVisible,
+                        onDismiss = { isMenuVisible = false }
+                    ) {
+                        NewMenuEntry(
+                            icon = R.drawable.calendar,
+                            text = "Sort by year",
+                            checked = albumSortBy == AlbumSortBy.Year,
+                            onClick = {
+                                albumSortBy = AlbumSortBy.Year
+                                isMenuVisible = false
+                            }
+                        )
+                        NewMenuEntry(
+                            icon = R.drawable.text,
+                            text = "Sort by title",
+                            checked = albumSortBy == AlbumSortBy.Title,
+                            onClick = {
+                                albumSortBy = AlbumSortBy.Title
+                                isMenuVisible = false
+                            }
+                        )
+                        NewMenuEntry(
+                            icon = R.drawable.time,
+                            text = "Sort by date added",
+                            checked = albumSortBy == AlbumSortBy.DateAdded,
+                            onClick = {
+                                albumSortBy = AlbumSortBy.DateAdded
+                                isMenuVisible = false
+                            }
+                        )
 
-            HeaderIconButton(
-                icon = R.drawable.time,
-                enabled = albumSortBy == AlbumSortBy.DateAdded,
-                onClick = { albumSortBy = AlbumSortBy.DateAdded }
-            )
+                        NewMenuDivider()
 
-            Spacer(modifier = Modifier.width(2.dp))
-
-            HeaderIconButton(
-                icon = R.drawable.arrow_up,
-                color = colorPalette.text,
-                onClick = { albumSortOrder = !albumSortOrder },
-                modifier = Modifier.graphicsLayer { rotationZ = sortOrderIconRotation }
-            )
+                        NewMenuEntry(
+                            icon = R.drawable.arrow_up,
+                            text = "Sort order",
+                            secondaryText = if (albumSortOrder == SortOrder.Ascending) "Ascending" else "Descending",
+                            onClick = {
+                                albumSortOrder = !albumSortOrder
+                                isMenuVisible = false
+                            }
+                        )
+                    }
+                }
+            }
+            }
         }
     ) {
         LazyColumn(

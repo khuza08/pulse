@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -63,11 +64,15 @@ import app.pulse.android.query
 import app.pulse.android.service.isLocal
 import app.pulse.android.transaction
 import app.pulse.android.ui.components.LocalMenuState
+import app.pulse.android.ui.components.NewMenu
+import app.pulse.android.ui.components.NewMenuDivider
+import app.pulse.android.ui.components.NewMenuEntry
 import app.pulse.android.ui.components.themed.ConfirmationDialog
 import app.pulse.android.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import app.pulse.android.ui.components.themed.CollapsingHeader
 import app.pulse.android.ui.components.themed.CollapsingHeaderContentSpacer
 import app.pulse.android.ui.components.themed.HeaderIconButton
+import app.pulse.android.ui.components.themed.HeaderPillRow
 import app.pulse.android.ui.components.themed.InHistoryMediaItemMenu
 import app.pulse.android.ui.components.themed.TextField
 import app.pulse.android.ui.items.SongItem
@@ -160,6 +165,7 @@ fun HomeSongs(
         lazyListState = lazyListState,
         headerActions = {
             var searching by rememberSaveable { mutableStateOf(false) }
+            var isMenuVisible by rememberSaveable { mutableStateOf(false) }
 
             AnimatedContent(
                 targetState = searching,
@@ -194,14 +200,71 @@ fun HomeSongs(
                                 }
                             }
                     )
-                } else Row(verticalAlignment = Alignment.CenterVertically) {
-                    HeaderIconButton(
-                        onClick = { searching = true },
-                        icon = R.drawable.search,
-                        color = colorPalette.text
-                    )
+                } else Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    HeaderPillRow {
+                        HeaderIconButton(
+                            onClick = { searching = true },
+                            icon = R.drawable.search,
+                            color = colorPalette.text
+                        )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                        Box {
+                            HeaderIconButton(
+                                icon = R.drawable.hamburger,
+                                onClick = { isMenuVisible = !isMenuVisible }
+                            )
+
+                            Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                                NewMenu(
+                                    visible = isMenuVisible,
+                                    onDismiss = { isMenuVisible = false }
+                                ) {
+                                    NewMenuEntry(
+                                        icon = R.drawable.trending,
+                                        text = "Sort by play time",
+                                        checked = sortBy == SongSortBy.PlayTime,
+                                        onClick = {
+                                            setSortBy(SongSortBy.PlayTime)
+                                            isMenuVisible = false
+                                        }
+                                    )
+                                    NewMenuEntry(
+                                        icon = R.drawable.text,
+                                        text = "Sort by title",
+                                        checked = sortBy == SongSortBy.Title,
+                                        onClick = {
+                                            setSortBy(SongSortBy.Title)
+                                            isMenuVisible = false
+                                        }
+                                    )
+                                    NewMenuEntry(
+                                        icon = R.drawable.time,
+                                        text = "Sort by date added",
+                                        checked = sortBy == SongSortBy.DateAdded,
+                                        onClick = {
+                                            setSortBy(SongSortBy.DateAdded)
+                                            isMenuVisible = false
+                                        }
+                                    )
+
+                                    NewMenuDivider()
+
+                                    NewMenuEntry(
+                                        icon = R.drawable.arrow_up,
+                                        text = "Sort order",
+                                        secondaryText = if (sortOrder == SortOrder.Ascending) "Ascending" else "Descending",
+                                        onClick = {
+                                            setSortOrder(!sortOrder)
+                                            isMenuVisible = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     if (items.isNotEmpty()) BasicText(
                         text = pluralStringResource(
@@ -215,9 +278,6 @@ fun HomeSongs(
                     )
                 }
             }
-
-
-            HeaderSongSortBy(sortBy, setSortBy, sortOrder, setSortOrder)
         }
     ) {
         LazyColumn(
