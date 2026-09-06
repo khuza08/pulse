@@ -243,6 +243,7 @@ fun HomePlaylists(
                     playlist = playlistPreview,
                     thumbnailSize = if (UIStatePreferences.playlistsAsGrid) Dimensions.thumbnails.playlist else Dimensions.thumbnails.playlist - 24.dp,
                     alternative = UIStatePreferences.playlistsAsGrid,
+                    showChevron = true,
                     modifier = Modifier
                         .clickable(onClick = { onPlaylistClick(playlistPreview.playlist) })
                         .animateItem(fadeInSpec = null, fadeOutSpec = null)
@@ -274,6 +275,7 @@ fun HomePlaylists(
                                 thumbnailUrl = playlist.thumbnailUrl.toString(),
                                 thumbnailSize = if (UIStatePreferences.playlistsAsGrid) Dimensions.thumbnails.playlist else Dimensions.thumbnails.playlist - 8.dp,
                                 alternative = UIStatePreferences.playlistsAsGrid,
+                                showChevron = true,
                                 modifier = Modifier
                                     .clickable(onClick = {
                                         onPipedPlaylistClick(
